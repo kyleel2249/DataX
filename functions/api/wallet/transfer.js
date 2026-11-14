@@ -31,12 +31,12 @@ export async function onRequestPost({ request, env }) {
   const transferId = crypto.randomUUID();
   try {
     await env.DATA_DB.batch([
-      env.DATA_DB.prepare("UPDATE wallet_accounts SET balance_atoms=balance_atoms-? WHERE id=? AND status='active' AND balance_atoms>=?").bind(amountAtoms,senderWallet.id,amountAtoms),
+      env.DATA_DB.prepare("UPDATE wallet_accounts SET balance_atoms=balance_atoms-? WHERE id=? AND status='active' AND balance_atoms>=? AND EXISTS (SELECT 1 FROM wallet_accounts WHERE id=? AND status='active') AND NOT EXISTS (SELECT 1 FROM wallet_transfers WHERE idempotency_key=?)").bind(amountAtoms,senderWallet.id,amountAtoms,recipientWallet.id,idempotencyKey),
       env.DATA_DB.prepare("INSERT INTO wallet_transfers (id,sender_user_id,recipient_user_id,amount_atoms,idempotency_key,status) SELECT ?,?,?,?,?,'pending' WHERE changes()=1").bind(transferId,auth.user.id,recipient.id,amountAtoms,idempotencyKey),
-      env.DATA_DB.prepare("UPDATE wallet_accounts SET balance_atoms=balance_atoms+? WHERE id=? AND EXISTS (SELECT 1 FROM wallet_transfers WHERE id=? AND status='pending')").bind(amountAtoms,recipientWallet.id,transferId),
+      env.DATA_DB.prepare("UPDATE wallet_accounts SET balance_atoms=balance_atoms+? WHERE id=? AND status='active' AND EXISTS (SELECT 1 FROM wallet_transfers WHERE id=? AND status='pending')").bind(amountAtoms,recipientWallet.id,transferId),
       env.DATA_DB.prepare("INSERT INTO wallet_ledger_entries (id,transaction_id,wallet_account_id,direction,amount_atoms) SELECT ?,?,?, 'debit',? WHERE EXISTS (SELECT 1 FROM wallet_transfers WHERE id=? AND status='pending')").bind(crypto.randomUUID(),transferId,senderWallet.id,amountAtoms,transferId),
       env.DATA_DB.prepare("INSERT INTO wallet_ledger_entries (id,transaction_id,wallet_account_id,direction,amount_atoms) SELECT ?,?,?, 'credit',? WHERE EXISTS (SELECT 1 FROM wallet_transfers WHERE id=? AND status='pending')").bind(crypto.randomUUID(),transferId,recipientWallet.id,amountAtoms,transferId),
-      env.DATA_DB.prepare("UPDATE wallet_transfers SET status='settled',settled_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending'").bind(transferId)
+      env.DATA_DB.prepare("UPDATE wallet_transfers SET status='settled',settled_at=CURRENT_TIMESTAMP WHERE id=? AND status='pending' AND (SELECT COUNT(*) FROM wallet_ledger_entries WHERE transaction_id=?)=2").bind(transferId,transferId)
     ]);
     const result = await env.DATA_DB.prepare("SELECT id,status,amount_atoms,created_at FROM wallet_transfers WHERE id=?").bind(transferId).first();
     if (!result) return json({error:"Transfer was not posted. Check your balance and whether this request reference was already used."},409);
