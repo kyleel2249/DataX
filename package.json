@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "wrangler pages dev .",
     "deploy": "wrangler pages deploy .",
-    "check": "node --check app.js && node --test tests/*.test.js"
+    "check": "node --check app.js && node --check service-worker.js && node --check functions/_lib/auth.js && node --check functions/_middleware.js && node --check functions/api/auth/login.js && node --check functions/api/auth/logout.js && node --check functions/api/auth/me.js && node --check functions/api/auth/register.js && node --check functions/api/wallet/transfer.js && node --check functions/api/redemptions/request.js && node --test tests/*.test.cjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
-  }
+  },
+  "type": "module"
 }
