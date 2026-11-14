@@ -128,8 +128,9 @@
   document.getElementById("convertButton").addEventListener("click",function(){
     const amount=Number(document.getElementById("convertAmount").value);
     if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid reward amount.");return;}
-    if(amount>state.rewardCapacity){toast("Demo reward capacity exceeded. Reset demo data to restore it.");return;}
-    state.rewardCapacity-=amount;state.tokens+=amount;
+    const availableRewards=Math.max(0,sum("reward")-Number(state.convertedRewards||0));
+    if(amount>availableRewards){toast("Amount exceeds unconverted eligible demo rewards ("+money(availableRewards)+").");return;}
+    state.convertedRewards=(Number(state.convertedRewards)||0)+amount;state.tokens+=amount;
     const entry={id:"MINT-DEMO-"+Date.now().toString(36).toUpperCase(),date:now(),value:amount,units:amount};
     state.tokenLog.unshift(entry);addTransaction("Demo token conversion",units(amount),money(amount)+" allocated to sandbox DTX");
     render();toast("Sandbox conversion completed. No blockchain transaction was created.");
