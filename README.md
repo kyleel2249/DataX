@@ -109,6 +109,12 @@ npx wrangler d1 migrations apply datax-db --remote
 
 Apply the migrations in this order: `0001_initial.sql`, `0002_dtx_money_and_redemption.sql`, then `0003_accounts_wallets_and_transfers.sql`. Do not enable cash redemption merely because the database exists. Reserve custody, payout rails, reconciliation, identity checks and required legal approvals must be completed first.
 
+## Authenticated bandwidth record intake
+
+Signed-in members can submit shared-bandwidth sessions, transferable data entitlements, or partner voucher references for review. The Pages Function at `/api/bandwidth/events` stores these submissions against the authenticated user in D1 and returns each member's own records.
+
+All member-submitted records are created with `verification_status='pending'` and `eligible_bytes=0`. The intake endpoint does not create reward allocations, issue DTX, or treat self-reported traffic as verified. An authorised provider or gateway integration must independently confirm the source, delivered bytes, consent, and attributable revenue before any event can become eligible. The current form is an auditable submission channel, not a live network meter or partner integration.
+
 ## Mobile installation and background metering
 
 - **PWA:** serve DataX over HTTPS and use the browser's Install app / Add to Home Screen action. The service worker caches the application shell for offline viewing. Account, transfer and settlement API calls still require a connection.

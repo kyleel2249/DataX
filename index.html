@@ -140,6 +140,28 @@
             <form class="panel auth-panel" id="transferForm"><div class="panel-heading"><div><h2>Send DTX</h2><p>Transfer to another registered DataX email.</p></div></div><label for="transferRecipient">Recipient email</label><input id="transferRecipient" type="email" required><label for="transferAmount">Amount (DTX)</label><input id="transferAmount" type="number" min="0.000001" max="100000000" step="0.000001" required><button class="primary-button full-button" type="submit">Send DTX transfer</button><p class="fine-print">Transfers are recorded in the D1 ledger with a unique request reference. No network or blockchain fee is currently charged.</p></form>
             <form class="panel auth-panel" id="redemptionRequestForm"><div class="panel-heading"><div><h2>Request cash redemption</h2><p>Submit a settlement request against verified reserve.</p></div></div><label for="redemptionAmount">Amount (DTX)</label><input id="redemptionAmount" type="number" min="0.000001" step="0.000001" required><label for="redemptionMethod">Payout method</label><select id="redemptionMethod"><option value="mobile_money">Mobile Money</option><option value="bank_transfer">Bank transfer</option></select><p class="fine-print">Requests remain disabled until the DTX reserve and payout programme are approved and activated. A request is not a completed payout.</p><button class="secondary-button full-button" type="submit">Request redemption</button></form>
           </div>
+          <article class="panel auth-panel bandwidth-submit-panel">
+            <div class="panel-heading"><div><h2>Submit a bandwidth record</h2><p>Send a contribution or entitlement record for independent review.</p></div><span class="meter-state">REVIEW REQUIRED</span></div>
+            <p class="fine-print">Submitted records remain pending. Device counters and self-reported volumes are not verified traffic. No DTX reward is created until an authorised provider or gateway confirms delivery and attributable revenue.</p>
+            <form id="bandwidthSubmissionForm">
+              <label for="bandwidthSourceType">Record type</label>
+              <select id="bandwidthSourceType" required><option value="shared_bandwidth">Shared bandwidth session</option><option value="data_entitlement">Transferable data entitlement</option><option value="voucher">Partner voucher</option></select>
+              <label for="bandwidthSourceReference">Provider / gateway / voucher reference</label>
+              <input id="bandwidthSourceReference" type="text" maxlength="120" placeholder="Reference supplied by your authorised provider" required>
+              <div class="account-work-grid">
+                <div><label for="bandwidthBytesUp">Uploaded traffic (bytes)</label><input id="bandwidthBytesUp" type="number" min="0" step="1" value="0" required></div>
+                <div><label for="bandwidthBytesDown">Downloaded traffic (bytes)</label><input id="bandwidthBytesDown" type="number" min="0" step="1" value="0" required></div>
+              </div>
+              <div class="account-work-grid">
+                <div><label for="bandwidthStartedAt">Session started (optional)</label><input id="bandwidthStartedAt" type="datetime-local"></div>
+                <div><label for="bandwidthEndedAt">Session ended (optional)</label><input id="bandwidthEndedAt" type="datetime-local"></div>
+              </div>
+              <label class="consent-line"><input id="bandwidthConsent" type="checkbox" required> I am authorised to submit this record and consent to its review for eligibility.</label>
+              <button class="primary-button full-button" type="submit">Submit record for review</button>
+              <div id="bandwidthSubmissionStatus" class="account-api-status" role="status" aria-live="polite"></div>
+            </form>
+          </article>
+          <article class="panel table-panel"><div class="panel-heading"><div><h2>Your submitted bandwidth records</h2><p>Server records and independent verification status.</p></div><button class="secondary-button" id="refreshBandwidthRecords" type="button">Refresh records</button></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>SUBMITTED</th><th>TYPE</th><th>UPLOAD</th><th>DOWNLOAD</th><th>STATUS</th></tr></thead><tbody id="bandwidthRecordsBody"><tr><td colspan="6" class="empty-state">Sign in to load your records.</td></tr></tbody></table></div></article>
           <article class="panel table-panel"><div class="panel-heading"><div><h2>Recent DTX transfers</h2><p>Server-recorded wallet activity.</p></div><button class="secondary-button" id="refreshAccountButton" type="button">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>DATE</th><th>DIRECTION</th><th>COUNTERPARTY</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="serverTransfers"></tbody></table></div></article>
           <button class="text-button signout-button" id="signOutButton" type="button">Sign out</button>
         </div>
@@ -172,5 +194,6 @@
   <div class="modal-backdrop" id="contributionModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close-modal aria-label="Close">×</button><div class="modal-icon">⌁</div><div class="eyebrow">SANDBOX EVENT GENERATOR</div><h2 id="modalTitle">Simulate a contribution</h2><p>This creates a clearly labelled demo record. It does not read your device traffic or send data over a network.</p><form id="contributionForm"><label for="contributionSource">Contribution source</label><select id="contributionSource"><option>Residential Wi-Fi gateway</option><option>Managed hotspot</option><option>Partner data voucher</option><option>Enterprise network</option></select><label for="contributionType">Event type</label><select id="contributionType"><option value="shared">Shared bandwidth delivered</option><option value="voucher">Partner entitlement record</option></select><label for="contributionGb">Volume (GB)</label><input id="contributionGb" type="number" min="0.01" max="500" step="0.01" value="2.5" required><div class="modal-estimate"><span>Illustrative gross value</span><strong id="contributionEstimate">GH₵ 2.50</strong></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Add demo event</button></div></form></div></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
+  <script src="./bandwidth-account.js"></script>
 </body>
 </html>

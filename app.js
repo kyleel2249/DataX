@@ -206,6 +206,7 @@
       const data=await apiRequest("/api/auth/me",{method:"GET",headers:{}});
       accountProfile=data.user; accountData=data; status.textContent="Connected · Cloudflare D1 wallet";
       renderAccount();
+      if(window.DataXBandwidth) await window.DataXBandwidth.load();
     } catch(error) {
       accountProfile=null; accountData=null; renderAccount();
       status.textContent=error.message.indexOf("not configured")>=0||error.message.indexOf("database")>=0
