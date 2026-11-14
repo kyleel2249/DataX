@@ -32,3 +32,18 @@
 /* DataX administrator bandwidth review console */
 #adminNavItem[hidden]{display:none!important}.admin-queue-list{display:grid;gap:12px;margin:14px 0}.admin-event-card{padding:17px}.admin-event-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.admin-event-head h3{font:600 13px var(--display);margin:0 0 5px;color:#e6f1fb}.admin-event-meta{font-size:9px;color:#8fa7bd;line-height:1.7}.admin-event-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}.admin-event-grid>div{padding:10px;border:1px solid var(--line);border-radius:8px;min-width:0}.admin-event-grid span,.admin-event-grid strong{display:block}.admin-event-grid span{font-size:8px;color:#8199ae;margin-bottom:5px}.admin-event-grid strong{font:600 11px var(--display);color:#dceaf6;overflow-wrap:anywhere}.admin-review-form{border-top:1px solid var(--line);padding-top:13px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.admin-review-form label{display:block;font-size:9px;color:#a9bfd2;margin-bottom:6px}.admin-review-form input,.admin-review-form textarea{width:100%;padding:10px;background:#081b2e;border:1px solid var(--line);border-radius:8px;color:#e7f1fb;font:10px var(--font)}.admin-review-form textarea{min-height:64px;resize:vertical}.admin-review-form .wide{grid-column:1/-1}.admin-review-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.admin-review-actions button{min-width:110px}.admin-audit-panel{margin-top:16px}.status.rejected{color:#ff9a9a;background:rgba(255,100,100,.1)}
 @media(max-width:760px){.admin-event-grid{grid-template-columns:1fr 1fr}.admin-review-form{grid-template-columns:1fr}.admin-review-form .wide{grid-column:auto}.admin-event-head{flex-direction:column}}
+
+/* Registration: password strength, confirmation and form status */
+.strength{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+.strength-bar{flex:1;height:6px;border-radius:6px;background:rgba(159,190,220,.16);overflow:hidden}
+.strength-bar i{display:block;height:100%;width:0;border-radius:6px;background:var(--red);transition:width .2s}
+.strength[data-level="1"] .strength-bar i{width:25%;background:var(--red)}
+.strength[data-level="2"] .strength-bar i{width:50%;background:var(--gold)}
+.strength[data-level="3"] .strength-bar i{width:75%;background:var(--cyan)}
+.strength[data-level="4"] .strength-bar i{width:100%;background:var(--green)}
+.strength-label{font-size:11px;color:var(--muted);min-width:92px;text-align:right}
+.field-hint{display:block;min-height:16px}
+.field-hint.ok{color:var(--green)}.field-hint.bad{color:var(--red)}
+.form-status{min-height:18px;margin:8px 0 0;font-size:12px;color:var(--red)}
+.form-status.ok{color:var(--green)}
+@media (prefers-reduced-motion:reduce){.strength-bar i{transition:none}}

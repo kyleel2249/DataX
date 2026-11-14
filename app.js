@@ -1,6 +1,7 @@
 (function () {
   "use strict";
-  const STORAGE_KEY = "datax-sandbox-v1";
+  const STORAGE_KEY = "datax-sandbox-v2";
+  const LEGACY_STORAGE_KEY = "datax-sandbox-v1";
   const RATE_PER_GB = 1;
   const CONTRIBUTOR_SHARE = 0.70;
   const MARKET_FEE = 0.01;
@@ -9,19 +10,10 @@
   const units = function (n) { return fmt(n) + " DTX"; };
   const now = function () { return new Date().toISOString(); };
   const dateLabel = function (value) { return new Date(value).toLocaleDateString("en-GB", {day:"2-digit",month:"short",year:"numeric"}); };
+  // Local sandbox state starts empty. No sample events, balances or transactions
+  // are seeded; every figure comes from something the person actually does here.
   const initialState = function () {
-    const base = Date.now();
-    const events = [
-      {id:"BAL-000108",date:new Date(base-3600000*3).toISOString(),source:"Residential Wi-Fi gateway",type:"Shared bandwidth",gb:4.2,gross:4.2,reward:2.94,status:"verified",demo:true},
-      {id:"BAL-000107",date:new Date(base-3600000*9).toISOString(),source:"Managed hotspot",type:"Shared bandwidth",gb:3.6,gross:3.6,reward:2.52,status:"verified",demo:true},
-      {id:"BAL-000106",date:new Date(base-86400000).toISOString(),source:"Residential Wi-Fi gateway",type:"Shared bandwidth",gb:5.1,gross:5.1,reward:3.57,status:"verified",demo:true},
-      {id:"BAL-000105",date:new Date(base-86400000*2).toISOString(),source:"Enterprise network",type:"Shared bandwidth",gb:2.8,gross:2.8,reward:1.96,status:"verified",demo:true},
-      {id:"BAL-000104",date:new Date(base-86400000*3).toISOString(),source:"Managed hotspot",type:"Shared bandwidth",gb:3.4,gross:3.4,reward:2.38,status:"verified",demo:true},
-      {id:"BAL-000103",date:new Date(base-86400000*4).toISOString(),source:"Residential Wi-Fi gateway",type:"Shared bandwidth",gb:2.2,gross:2.2,reward:1.54,status:"verified",demo:true},
-      {id:"BAL-000102",date:new Date(base-86400000*5).toISOString(),source:"Partner data voucher",type:"Entitlement record",gb:1.5,gross:1.5,reward:1.05,status:"verified",demo:true},
-      {id:"BAL-000101",date:new Date(base-86400000*6).toISOString(),source:"Enterprise network",type:"Shared bandwidth",gb:2.0,gross:2.0,reward:1.4,status:"verified",demo:true}
-    ];
-    return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,reserveCash:0,cashHistory:[],redemptions:[],tokenLog:[],transactions:[],sequence:109};
+    return {events:[],tokens:0,cash:0,rewardCapacity:100,convertedRewards:0,reserveCash:0,cashHistory:[],redemptions:[],tokenLog:[],transactions:[],sequence:1};
   };
   // Repair any stored state with missing or malformed fields so a corrupted
   // localStorage entry can never stop the interface from loading.
@@ -42,6 +34,7 @@
   let accountData = null;
   let deferredInstallPrompt = null;
   try { state = sanitizeState(JSON.parse(localStorage.getItem(STORAGE_KEY))); } catch (e) { state = initialState(); }
+  try { localStorage.removeItem(LEGACY_STORAGE_KEY); } catch (e) { /* storage unavailable */ }
   const save = function () { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* Storage can be unavailable (private mode or quota); the session continues in memory. */ } };
   const sum = function (key) { return state.events.reduce(function (a,e) { return a + Number(e[key] || 0); },0); };
   const toast = function (message) {
@@ -72,7 +65,7 @@
     document.getElementById("metricTokens").innerHTML=fmt(state.tokens)+' <small>DTX</small>';
     document.getElementById("metricWallet").textContent=money(state.cash);
     document.getElementById("chartTotal").textContent=fmt(total)+" GB";
-    document.getElementById("recentEvents").innerHTML=state.events.slice(0,5).map(function(e){return eventRow(e,false);}).join("");
+    document.getElementById("recentEvents").innerHTML=state.events.slice(0,5).map(function(e){return eventRow(e,false);}).join("")||'<tr><td colspan="5" class="empty-state">No contributions yet. Use Simulate contribution to try the sandbox, or sign in to submit real evidence.</td></tr>';
     document.getElementById("ledgerTotal").innerHTML=fmt(total)+' <small>GB</small>';
     document.getElementById("ledgerEvents").textContent=state.events.length;
     document.getElementById("ledgerPending").textContent=state.events.filter(function(e){return e.status==="pending";}).length;
@@ -209,6 +202,13 @@
   const renderAccount = function() {
     const signedOut=document.getElementById("accountSignedOut"), signedIn=document.getElementById("accountSignedIn");
     signedOut.hidden=!!accountProfile; signedIn.hidden=!accountProfile;
+    const pName=document.getElementById("profileName"), pSub=document.getElementById("profileSub"), pAvatar=document.getElementById("profileAvatar");
+    if(pName){
+      const label=accountProfile?(accountProfile.display_name||accountProfile.name||accountProfile.email||"Account"):"Not signed in";
+      pName.textContent=label;
+      pSub.textContent=accountProfile?"Signed in":"Sign in from Account";
+      pAvatar.textContent=accountProfile?String(label).trim().split(/\s+/).slice(0,2).map(function(w){return w.charAt(0).toUpperCase();}).join("")||"DX":"DX";
+    }
     if(!accountProfile) return;
     document.getElementById("serverDtxBalance").textContent=Number(accountData?.wallet?.balance||0).toFixed(6)+" DTX";
     document.getElementById("serverAccountEmail").textContent=accountProfile.email;
@@ -245,13 +245,57 @@
       document.getElementById("loginForm").reset();
     } catch(error){toast(error.message);}
   });
+  // Password strength: guidance only. The server enforces the 12-128 character rule.
+  const COMMON_PASSWORDS=["password","123456","qwerty","letmein","welcome","admin","iloveyou","dataxdatax"];
+  const passwordStrength=function(value){
+    const v=String(value||"");
+    if(!v) return {level:0,label:"Enter a password"};
+    if(v.length<12) return {level:1,label:"Too short ("+v.length+"/12)"};
+    const lower=v.toLowerCase();
+    if(COMMON_PASSWORDS.some(function(w){return lower.indexOf(w)>=0;})||/^(.)\1+$/.test(v)) return {level:1,label:"Too common"};
+    let classes=0;
+    if(/[a-z]/.test(v))classes++; if(/[A-Z]/.test(v))classes++; if(/[0-9]/.test(v))classes++; if(/[^A-Za-z0-9]/.test(v))classes++;
+    const unique=new Set(v).size;
+    let score=0;
+    if(v.length>=12)score++; if(v.length>=16)score++; if(classes>=3||v.length>=20)score++; if(unique>=8&&classes>=2)score++;
+    const level=Math.max(2,Math.min(4,score));
+    return {level:level,label:["","Weak","Fair","Good","Strong"][level]};
+  };
+  const registerPassword=document.getElementById("registerPassword");
+  const registerConfirm=document.getElementById("registerPasswordConfirm");
+  const registerStatus=document.getElementById("registerStatus");
+  const updateRegisterFeedback=function(){
+    const result=passwordStrength(registerPassword.value);
+    document.getElementById("passwordStrength").setAttribute("data-level",String(result.level));
+    document.getElementById("passwordStrengthLabel").textContent=result.label;
+    const hint=document.getElementById("registerConfirmHint");
+    if(!registerConfirm.value){hint.textContent="";hint.className="field-hint";registerConfirm.setCustomValidity("");return;}
+    const same=registerConfirm.value===registerPassword.value;
+    hint.textContent=same?"Passwords match.":"Passwords do not match.";
+    hint.className="field-hint "+(same?"ok":"bad");
+    registerConfirm.setCustomValidity(same?"":"Passwords do not match.");
+  };
+  registerPassword.addEventListener("input",updateRegisterFeedback);
+  registerConfirm.addEventListener("input",updateRegisterFeedback);
   document.getElementById("registerForm").addEventListener("submit",async function(e){
     e.preventDefault();
+    const submit=document.getElementById("registerSubmit");
+    if(submit.disabled) return;
+    const showStatus=function(message,ok){registerStatus.textContent=message;registerStatus.className="form-status"+(ok?" ok":"");};
+    const name=document.getElementById("registerName").value.trim();
+    const password=registerPassword.value, confirmPassword=registerConfirm.value;
+    if(name.length<2){showStatus("Enter your full name (at least 2 characters).");return;}
+    if(password.length<12||password.length>128){showStatus("Use a password between 12 and 128 characters.");return;}
+    if(password!==confirmPassword){showStatus("The password confirmation does not match.");registerConfirm.focus();return;}
+    submit.disabled=true; submit.textContent="Creating account…"; showStatus("");
     try {
-      const data=await apiRequest("/api/auth/register",{method:"POST",body:JSON.stringify({name:document.getElementById("registerName").value,email:document.getElementById("registerEmail").value,password:document.getElementById("registerPassword").value})});
+      const data=await apiRequest("/api/auth/register",{method:"POST",body:JSON.stringify({name:name,email:document.getElementById("registerEmail").value,password:password,confirmPassword:confirmPassword})});
       accountProfile=data.user; await loadAccount(); toast("DataX account created. Your DTX wallet is ready.");
-      document.getElementById("registerForm").reset();
-    } catch(error){toast(error.message);}
+      document.getElementById("registerForm").reset(); updateRegisterFeedback(); showStatus("");
+    } catch(error){
+      // Show the server's actual message, not a generic substitute.
+      showStatus(error.message); toast(error.message);
+    } finally { submit.disabled=false; submit.textContent="Create DataX account"; }
   });
   document.getElementById("transferForm").addEventListener("submit",async function(e){
     e.preventDefault();
