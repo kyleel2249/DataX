@@ -9,7 +9,7 @@ export function json(data, status = 200, headers = {}) {
 }
 
 export function cookieHeader(token, maxAge = SESSION_TTL_SECONDS) {
-  return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
+  return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=${maxAge}`;
 }
 
 export function clearCookieHeader() {
