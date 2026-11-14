@@ -66,6 +66,7 @@
     document.getElementById("reserveAvailable").textContent=money(state.reserveCash);
     document.getElementById("redeemableValue").textContent=money(state.tokens);
     document.getElementById("pendingRedemption").textContent=money(state.redemptions.filter(function(r){return r.status==="pending";}).reduce(function(a,r){return a+r.net;},0));
+    document.getElementById("reserveCoverage").textContent=(state.tokens>0?((state.reserveCash/state.tokens)*100):100).toFixed(1)+"%";
     document.getElementById("cashHistory").innerHTML=state.cashHistory.map(function(h){return '<tr><td class="ref">'+escapeHtml(h.id)+'</td><td>'+dateLabel(h.date)+'</td><td>'+escapeHtml(h.type)+'</td><td>'+(h.units?units(h.units):"—")+'</td><td>'+money(h.amount)+'</td><td>'+statusPill(h.status)+'</td></tr>';}).join("")||'<tr><td colspan="6" class="empty-state">No reserve or redemption records yet.</td></tr>';
     document.getElementById("marketCash").textContent=money(state.cash);
     document.getElementById("marketTokens").textContent=units(state.tokens);
@@ -121,7 +122,7 @@
   document.getElementById("redeemAmount").addEventListener("input",updateRedeemPreview);
   document.getElementById("reserveFunding").addEventListener("input",function(){this.setCustomValidity(Number(this.value)>0?"":"Enter a positive amount.");});
   document.getElementById("fundReserveButton").addEventListener("click",function(){const amount=Number(document.getElementById("reserveFunding").value),ref=document.getElementById("reserveReference").value.trim();if(!Number.isFinite(amount)||amount<=0||amount>10000000){toast("Enter a reserve amount above zero and below GH₵ 10,000,000.");return;}if(!ref){toast("Add a reference for this simulated funding record.");return;}state.reserveCash+=amount;state.cashHistory.unshift({id:"RSV-"+Date.now().toString(36).toUpperCase(),date:now(),type:"Simulated reserve funding · "+ref,amount:amount,units:0,status:"demo"});addTransaction("Simulated reserve funding",money(amount),"Local reserve ledger only · "+ref,"demo");render();toast("Simulated reserve entry recorded. No money was deposited.");});
-  document.getElementById("redeemButton").addEventListener("click",function(){const amount=Number(document.getElementById("redeemAmount").value);if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid DTX amount.");return;}if(amount>state.tokens){toast("Insufficient DTX balance.");return;}const gross=amount,fee=gross*MARKET_FEE,net=gross-fee;if(state.reserveCash<net){toast("Insufficient available reserve. Required net reserve: "+money(net)+".");return;}state.tokens-=amount;state.reserveCash-=net;state.cash+=net;const id="RDM-"+Date.now().toString(36).toUpperCase();state.redemptions.unshift({id:id,date:now(),gross:gross,fee:fee,net:net,status:"demo"});state.cashHistory.unshift({id:id,date:now(),type:"DTX cash redemption",amount:net,units:amount,status:"completed"});addTransaction("DTX cash redemption",money(net),units(amount)+" repurchased · fee "+money(fee),"demo");render();toast("DTX repurchased in the sandbox. No external cash payout occurred.");});
+  document.getElementById("redeemButton").addEventListener("click",function(){const amount=Number(document.getElementById("redeemAmount").value);if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid DTX amount.");return;}if(amount>state.tokens){toast("Insufficient DTX balance.");return;}const gross=amount,fee=gross*MARKET_FEE,net=gross-fee;if(state.reserveCash<state.tokens){toast("Redemption paused: the reserve does not fully cover outstanding DTX. Required backing: "+money(state.tokens)+".");return;}state.tokens-=amount;state.reserveCash-=net;state.cash+=net;const id="RDM-"+Date.now().toString(36).toUpperCase();state.redemptions.unshift({id:id,date:now(),gross:gross,fee:fee,net:net,status:"demo"});state.cashHistory.unshift({id:id,date:now(),type:"DTX cash redemption",amount:net,units:amount,status:"completed"});addTransaction("DTX cash redemption",money(net),units(amount)+" repurchased · fee "+money(fee),"demo");render();toast("DTX repurchased in the sandbox. No external cash payout occurred.");});
   document.getElementById("convertAmount").addEventListener("input",updateConvertPreview);
   document.getElementById("contributionGb").addEventListener("input",function(){document.getElementById("contributionEstimate").textContent=money(Math.max(0,Number(this.value)||0)*RATE_PER_GB);});
   document.getElementById("contributionForm").addEventListener("submit",function(e){
@@ -140,6 +141,7 @@
     if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid reward amount.");return;}
     const availableRewards=Math.max(0,sum("reward")-Number(state.convertedRewards||0));
     if(amount>availableRewards){toast("Amount exceeds unconverted eligible demo rewards ("+money(availableRewards)+").");return;}
+    if(state.reserveCash<state.tokens+amount){toast("Issuance blocked: the reserve must cover existing DTX plus the new issuance. Required reserve: "+money(state.tokens+amount)+".");return;}
     state.convertedRewards=(Number(state.convertedRewards)||0)+amount;state.tokens+=amount;
     const entry={id:"MINT-DEMO-"+Date.now().toString(36).toUpperCase(),date:now(),value:amount,units:amount};
     state.tokenLog.unshift(entry);addTransaction("Demo token conversion",units(amount),money(amount)+" allocated to sandbox DTX");
@@ -150,7 +152,7 @@
     if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid token amount.");return;}
     if(amount>state.tokens){toast("Insufficient DTX balance.");return;}
     const gross=amount,fee=gross*MARKET_FEE,net=gross-fee;
-    if(state.reserveCash<net){toast("Insufficient reserve to repurchase DTX. Available: "+money(state.reserveCash)+".");return;}
+    if(state.reserveCash<state.tokens){toast("Repurchase paused: reserve backing is below outstanding DTX. Required backing: "+money(state.tokens)+".");return;}
     state.tokens-=amount;state.reserveCash-=net;state.cash+=net;
     const ref="BUYBACK-"+Date.now().toString(36).toUpperCase();state.cashHistory.unshift({id:ref,date:now(),type:"DTX market repurchase",amount:net,units:amount,status:"completed"});
     addTransaction("DTX reserve repurchase",money(net),units(amount)+" repurchased · fee "+money(fee),"demo");
