@@ -4,8 +4,8 @@ pages_build_output_dir = "./dist"
 
 # Cloudflare Pages Functions are discovered from ./functions at repository root.
 # Create the D1 database first, then replace the placeholder ID below and uncomment.
-# [[d1_databases]]
-# binding = "DATA_DB"
-# database_name = "datax-db"
-# database_id = "REPLACE_WITH_REAL_DATABASE_ID"
-# migrations_dir = "migrations"
+[[d1_databases]]
+binding = "DATA_DB"
+database_name = "datax-db"
+database_id = "68383689-3265-4e14-8bbe-f418d5ca8fce"
+migrations_dir = "migrations"
