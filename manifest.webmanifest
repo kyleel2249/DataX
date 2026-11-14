@@ -10,6 +10,6 @@
   "background_color": "#071629",
   "theme_color": "#071629",
   "icons": [
-    { "src": "/assets/datax-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "./assets/datax-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }
