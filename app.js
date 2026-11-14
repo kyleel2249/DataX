@@ -200,6 +200,7 @@
   };
   const loadAccount = async function() {
     const status=document.getElementById("accountApiStatus");
+    if(window.DataXNative&&!getApiBaseUrl()){accountProfile=null;accountData=null;renderAccount();status.textContent="Set the HTTPS address of your deployed DataX Pages site above to connect this Android app to account services.";return;}
     status.textContent="Connecting to DataX account services…";
     try {
       const data=await apiRequest("/api/auth/me",{method:"GET",headers:{}});
