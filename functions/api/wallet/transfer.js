@@ -19,6 +19,12 @@ export async function onRequestPost({ request, env }) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail) || !amountAtoms || idempotencyKey.length < 12 || idempotencyKey.length > 100) {
     return json({error:"Enter a valid recipient, amount (up to 6 decimals), and unique transfer reference."},400);
   }
+  // A retried request with the same reference returns the original result instead of an error.
+  const prior = await env.DATA_DB.prepare("SELECT id,sender_user_id,status,amount_atoms,created_at FROM wallet_transfers WHERE idempotency_key=? LIMIT 1").bind(idempotencyKey).first();
+  if (prior) {
+    if (prior.sender_user_id !== auth.user.id) return json({error:"This request reference was already used."},409);
+    return json({ok:true,replayed:true,transfer:{id:prior.id,status:prior.status,amount:(Number(prior.amount_atoms)/1e6).toFixed(6),createdAt:prior.created_at}});
+  }
   const recipient = await env.DATA_DB.prepare("SELECT id,email FROM users WHERE email=? AND account_status='active' LIMIT 1").bind(recipientEmail).first();
   if (!recipient) return json({error:"No active DataX account matches that email."},404);
   if (recipient.id === auth.user.id) return json({error:"You cannot transfer DTX to yourself."},400);
