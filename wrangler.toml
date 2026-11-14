@@ -5,6 +5,8 @@ pages_build_output_dir = "."
 # Static Cloudflare Pages prototype.
 # Before enabling production APIs, configure D1, Queues, Durable Objects,
 # secrets and environment-specific bindings in Cloudflare.
+# D1 binding (create the database first, then replace the placeholder ID):
+# migrations_dir = "migrations"
 # [[d1_databases]]
 # binding = "DATA_DB"
 # database_name = "datax-db"
