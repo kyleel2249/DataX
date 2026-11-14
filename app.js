@@ -24,6 +24,9 @@
     return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,reserveCash:0,cashHistory:[],redemptions:[],tokenLog:[],transactions:[],sequence:109};
   };
   let state;
+  let accountProfile = null;
+  let accountData = null;
+  let deferredInstallPrompt = null;
   try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState(); } catch (e) { state = initialState(); }
   state.reserveCash=Number(state.reserveCash)||0; state.cashHistory=Array.isArray(state.cashHistory)?state.cashHistory:[]; state.redemptions=Array.isArray(state.redemptions)?state.redemptions:[];
   const save = function () { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); };
@@ -99,9 +102,10 @@
   const showView = function (name) {
     document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("active",v.id==="view-"+name);});
     document.querySelectorAll(".nav-item[data-view]").forEach(function(b){b.classList.toggle("active",b.dataset.view===name);});
-    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",cash:"Cash & reserves",activity:"Activity",settings:"Settings"};
+    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",account:"Account & transfers",cash:"Cash & reserves",activity:"Activity",settings:"Settings"};
     document.getElementById("pageCrumb").textContent=labels[name]||"Overview";
     document.getElementById("sidebar").classList.remove("open");
+    if(name==="account") loadAccount();
     window.scrollTo({top:0,behavior:"smooth"});
   };
   const openModal = function () {const m=document.getElementById("contributionModal");m.classList.add("open");m.setAttribute("aria-hidden","false");};
@@ -175,4 +179,114 @@
     state=initialState();render();toast("Demo data has been reset.");
   });
   renderProducts();render();updateRedeemPreview();
+
+  const apiRequest = async function(path, options) {
+    const response = await fetch(path, Object.assign({credentials:"same-origin",headers:{"content-type":"application/json"}},options||{}));
+    let data={}; try { data=await response.json(); } catch(e) {}
+    if(!response.ok) throw new Error(data.error||("Request failed ("+response.status+")."));
+    return data;
+  };
+  const renderAccount = function() {
+    const signedOut=document.getElementById("accountSignedOut"), signedIn=document.getElementById("accountSignedIn");
+    signedOut.hidden=!!accountProfile; signedIn.hidden=!accountProfile;
+    if(!accountProfile) return;
+    document.getElementById("serverDtxBalance").textContent=Number(accountData?.wallet?.balance||0).toFixed(6)+" DTX";
+    document.getElementById("serverAccountEmail").textContent=accountProfile.email;
+    document.getElementById("serverAccountStatus").textContent=accountData?.wallet?.status||"Active";
+    document.getElementById("serverTransfers").innerHTML=(accountData?.transfers||[]).map(function(t){
+      return '<tr><td class="ref">'+escapeHtml(t.id)+'</td><td>'+dateLabel(t.created_at)+'</td><td>'+escapeHtml(t.direction)+'</td><td>'+escapeHtml(t.counterparty_email||"DataX member")+'</td><td>'+units(Number(t.amount_atoms)/1000000)+'</td><td>'+statusPill(t.status)+'</td></tr>';
+    }).join("")||'<tr><td colspan="6" class="empty-state">No DTX transfers yet.</td></tr>';
+  };
+  const loadAccount = async function() {
+    const status=document.getElementById("accountApiStatus");
+    status.textContent="Connecting to DataX account services…";
+    try {
+      const data=await apiRequest("/api/auth/me",{method:"GET",headers:{}});
+      accountProfile=data.user; accountData=data; status.textContent="Connected · Cloudflare D1 wallet";
+      renderAccount();
+    } catch(error) {
+      accountProfile=null; accountData=null; renderAccount();
+      status.textContent=error.message.indexOf("not configured")>=0||error.message.indexOf("database")>=0
+        ?"Account API is ready in the codebase, but the Cloudflare D1 binding and migrations have not been configured."
+        :error.message==="Sign in to continue."||error.message.indexOf("session has expired")>=0
+          ?"Sign in or create an account to access your server-backed DTX wallet."
+          :error.message;
+    }
+  };
+  document.getElementById("loginForm").addEventListener("submit",async function(e){
+    e.preventDefault();
+    try {
+      const data=await apiRequest("/api/auth/login",{method:"POST",body:JSON.stringify({email:document.getElementById("loginEmail").value,password:document.getElementById("loginPassword").value})});
+      accountProfile=data.user; await loadAccount(); toast("Signed in to your DataX account.");
+      document.getElementById("loginForm").reset();
+    } catch(error){toast(error.message);}
+  });
+  document.getElementById("registerForm").addEventListener("submit",async function(e){
+    e.preventDefault();
+    try {
+      const data=await apiRequest("/api/auth/register",{method:"POST",body:JSON.stringify({name:document.getElementById("registerName").value,email:document.getElementById("registerEmail").value,password:document.getElementById("registerPassword").value})});
+      accountProfile=data.user; await loadAccount(); toast("DataX account created. Your DTX wallet is ready.");
+      document.getElementById("registerForm").reset();
+    } catch(error){toast(error.message);}
+  });
+  document.getElementById("transferForm").addEventListener("submit",async function(e){
+    e.preventDefault();
+    const amount=document.getElementById("transferAmount").value;
+    try {
+      const result=await apiRequest("/api/wallet/transfer",{method:"POST",body:JSON.stringify({recipientEmail:document.getElementById("transferRecipient").value,amount:amount,idempotencyKey:"DX-"+crypto.randomUUID()})});
+      toast("DTX transfer posted: "+result.transfer.amount+" DTX.");
+      document.getElementById("transferForm").reset(); await loadAccount();
+    } catch(error){toast(error.message);}
+  });
+  document.getElementById("redemptionRequestForm").addEventListener("submit",async function(e){
+    e.preventDefault();
+    try {
+      const result=await apiRequest("/api/redemptions/request",{method:"POST",body:JSON.stringify({amount:document.getElementById("redemptionAmount").value,payoutMethod:document.getElementById("redemptionMethod").value,idempotencyKey:"DXR-"+crypto.randomUUID()})});
+      toast("Redemption request recorded: "+result.redemption.status+". No cash has been paid.");
+      await loadAccount();
+    } catch(error){toast(error.message);}
+  });
+  document.getElementById("signOutButton").addEventListener("click",async function(){
+    try { await apiRequest("/api/auth/logout",{method:"POST",body:"{}"}); } catch(e) {}
+    accountProfile=null; accountData=null; renderAccount(); toast("You have signed out.");
+  });
+  document.getElementById("refreshAccountButton").addEventListener("click",loadAccount);
+
+  const bytesLabel=function(bytes){return (Number(bytes||0)/(1024*1024)).toFixed(2)+" MB";};
+  const refreshNativeMeter=function(){
+    const bridge=window.DataXNative;
+    const stateLabel=document.getElementById("meterState"), note=document.getElementById("meterPlatformNote");
+    if(!bridge){stateLabel.textContent="ANDROID APP REQUIRED";note.textContent="Install the DataX Android app to run this meter in the background. The PWA supports home-screen installation and offline access, but cannot continuously meter device traffic. iOS does not permit continuous device-wide background metering.";return;}
+    try {
+      const snapshot=JSON.parse(bridge.getMeteringSnapshot());
+      stateLabel.textContent=snapshot.running?"RUNNING IN BACKGROUND":"PAUSED";
+      stateLabel.classList.toggle("meter-running",!!snapshot.running);
+      document.getElementById("meterRx").textContent=bytesLabel(snapshot.rxBytes);
+      document.getElementById("meterTx").textContent=bytesLabel(snapshot.txBytes);
+      document.getElementById("meterLastSample").textContent=snapshot.lastSampleAt?new Date(snapshot.lastSampleAt).toLocaleTimeString():"Waiting for first sample";
+      note.textContent="Device-wide aggregate counters are stored locally. They can include traffic from other apps and are not eligible for DTX rewards without independent network-provider verification.";
+    } catch(error){stateLabel.textContent="METER STATUS UNAVAILABLE";}
+  };
+  document.getElementById("startMeterButton").addEventListener("click",function(){
+    if(!window.DataXNative){toast("Background metering requires the installed Android app.");return;}
+    window.DataXNative.startMetering();refreshNativeMeter();toast("Background meter started. Check the persistent DataX notification.");
+  });
+  document.getElementById("stopMeterButton").addEventListener("click",function(){
+    if(!window.DataXNative){toast("Install the Android app to control the background meter.");return;}
+    window.DataXNative.stopMetering();refreshNativeMeter();toast("Background meter stopped.");
+  });
+  document.getElementById("installAppButton").addEventListener("click",async function(){
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt(); await deferredInstallPrompt.userChoice; deferredInstallPrompt=null; return;
+    }
+    if(window.matchMedia("(display-mode: standalone)").matches){toast("DataX is already installed.");return;}
+    toast(/iphone|ipad|ipod/i.test(navigator.userAgent)?"On iPhone: open Share, then choose Add to Home Screen.":"Use your browser menu and choose Install app or Add to Home Screen.");
+  });
+  window.addEventListener("beforeinstallprompt",function(event){event.preventDefault();deferredInstallPrompt=event;document.getElementById("installAppButton").classList.add("install-ready");});
+  window.addEventListener("appinstalled",function(){deferredInstallPrompt=null;toast("DataX has been installed.");});
+  if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("./service-worker.js").catch(function(){/* Offline support is optional when hosted outside HTTPS. */});});}
+  refreshNativeMeter();
+  window.setInterval(refreshNativeMeter,15000);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)refreshNativeMeter();});
+
 })();
