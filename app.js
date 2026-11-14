@@ -21,10 +21,11 @@
       {id:"BAL-000102",date:new Date(base-86400000*5).toISOString(),source:"Partner data voucher",type:"Entitlement record",gb:1.5,gross:1.5,reward:1.05,status:"verified",demo:true},
       {id:"BAL-000101",date:new Date(base-86400000*6).toISOString(),source:"Enterprise network",type:"Shared bandwidth",gb:2.0,gross:2.0,reward:1.4,status:"verified",demo:true}
     ];
-    return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,tokenLog:[],transactions:[],sequence:109};
+    return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,reserveCash:0,cashHistory:[],redemptions:[],tokenLog:[],transactions:[],sequence:109};
   };
   let state;
   try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState(); } catch (e) { state = initialState(); }
+  state.reserveCash=Number(state.reserveCash)||0; state.cashHistory=Array.isArray(state.cashHistory)?state.cashHistory:[]; state.redemptions=Array.isArray(state.redemptions)?state.redemptions:[];
   const save = function () { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); };
   const sum = function (key) { return state.events.reduce(function (a,e) { return a + Number(e[key] || 0); },0); };
   const toast = function (message) {
@@ -62,6 +63,10 @@
     const filter=document.getElementById("eventFilter").value;
     document.getElementById("ledgerEventsBody").innerHTML=state.events.filter(function(e){return filter==="all"||e.status===filter;}).map(function(e){return eventRow(e,true);}).join("")||'<tr><td colspan="7" class="empty-state">No events match this filter.</td></tr>';
     document.getElementById("tokenPageBalance").textContent=units(state.tokens);
+    document.getElementById("reserveAvailable").textContent=money(state.reserveCash);
+    document.getElementById("redeemableValue").textContent=money(state.tokens);
+    document.getElementById("pendingRedemption").textContent=money(state.redemptions.filter(function(r){return r.status==="pending";}).reduce(function(a,r){return a+r.net;},0));
+    document.getElementById("cashHistory").innerHTML=state.cashHistory.map(function(h){return '<tr><td class="ref">'+escapeHtml(h.id)+'</td><td>'+dateLabel(h.date)+'</td><td>'+escapeHtml(h.type)+'</td><td>'+(h.units?units(h.units):"—")+'</td><td>'+money(h.amount)+'</td><td>'+statusPill(h.status)+'</td></tr>';}).join("")||'<tr><td colspan="6" class="empty-state">No reserve or redemption records yet.</td></tr>';
     document.getElementById("marketCash").textContent=money(state.cash);
     document.getElementById("marketTokens").textContent=units(state.tokens);
     document.getElementById("walletCashLarge").textContent=money(state.cash);
@@ -93,7 +98,7 @@
   const showView = function (name) {
     document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("active",v.id==="view-"+name);});
     document.querySelectorAll(".nav-item[data-view]").forEach(function(b){b.classList.toggle("active",b.dataset.view===name);});
-    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",activity:"Activity",settings:"Settings"};
+    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",cash:"Cash & reserves",activity:"Activity",settings:"Settings"};
     document.getElementById("pageCrumb").textContent=labels[name]||"Overview";
     document.getElementById("sidebar").classList.remove("open");
     window.scrollTo({top:0,behavior:"smooth"});
@@ -112,6 +117,11 @@
   document.getElementById("helpButton").addEventListener("click",function(){toast("DataX prototype: no live carrier, gateway, payment or blockchain connection is active.");});
   document.getElementById("eventFilter").addEventListener("change",render);
   document.getElementById("sellAmount").addEventListener("input",updateSellPreview);
+  const updateRedeemPreview=function(){const a=Math.max(0,Number(document.getElementById("redeemAmount").value)||0),fee=a*MARKET_FEE;document.getElementById("redeemGross").textContent=money(a);document.getElementById("redeemFee").textContent="− "+money(fee);document.getElementById("redeemNet").textContent=money(a-fee);};
+  document.getElementById("redeemAmount").addEventListener("input",updateRedeemPreview);
+  document.getElementById("reserveFunding").addEventListener("input",function(){this.setCustomValidity(Number(this.value)>0?"":"Enter a positive amount.");});
+  document.getElementById("fundReserveButton").addEventListener("click",function(){const amount=Number(document.getElementById("reserveFunding").value),ref=document.getElementById("reserveReference").value.trim();if(!Number.isFinite(amount)||amount<=0||amount>10000000){toast("Enter a reserve amount above zero and below GH₵ 10,000,000.");return;}if(!ref){toast("Add a reference for this simulated funding record.");return;}state.reserveCash+=amount;state.cashHistory.unshift({id:"RSV-"+Date.now().toString(36).toUpperCase(),date:now(),type:"Simulated reserve funding · "+ref,amount:amount,units:0,status:"demo"});addTransaction("Simulated reserve funding",money(amount),"Local reserve ledger only · "+ref,"demo");render();toast("Simulated reserve entry recorded. No money was deposited.");});
+  document.getElementById("redeemButton").addEventListener("click",function(){const amount=Number(document.getElementById("redeemAmount").value);if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid DTX amount.");return;}if(amount>state.tokens){toast("Insufficient DTX balance.");return;}const gross=amount,fee=gross*MARKET_FEE,net=gross-fee;if(state.reserveCash<net){toast("Insufficient available reserve. Required net reserve: "+money(net)+".");return;}state.tokens-=amount;state.reserveCash-=net;state.cash+=net;const id="RDM-"+Date.now().toString(36).toUpperCase();state.redemptions.unshift({id:id,date:now(),gross:gross,fee:fee,net:net,status:"demo"});state.cashHistory.unshift({id:id,date:now(),type:"DTX cash redemption",amount:net,units:amount,status:"completed"});addTransaction("DTX cash redemption",money(net),units(amount)+" repurchased · fee "+money(fee),"demo");render();toast("DTX repurchased in the sandbox. No external cash payout occurred.");});
   document.getElementById("convertAmount").addEventListener("input",updateConvertPreview);
   document.getElementById("contributionGb").addEventListener("input",function(){document.getElementById("contributionEstimate").textContent=money(Math.max(0,Number(this.value)||0)*RATE_PER_GB);});
   document.getElementById("contributionForm").addEventListener("submit",function(e){
@@ -138,11 +148,13 @@
   document.getElementById("sellButton").addEventListener("click",function(){
     const amount=Number(document.getElementById("sellAmount").value);
     if(!Number.isFinite(amount)||amount<=0){toast("Enter a valid token amount.");return;}
-    if(amount>state.tokens){toast("Insufficient DTX demo balance.");return;}
+    if(amount>state.tokens){toast("Insufficient DTX balance.");return;}
     const gross=amount,fee=gross*MARKET_FEE,net=gross-fee;
-    state.tokens-=amount;state.cash+=net;
-    addTransaction("Demo token sale",money(net),units(amount)+" sold · fee "+money(fee));
-    render();toast("Demo order executed. Local balances updated only.");
+    if(state.reserveCash<net){toast("Insufficient reserve to repurchase DTX. Available: "+money(state.reserveCash)+".");return;}
+    state.tokens-=amount;state.reserveCash-=net;state.cash+=net;
+    const ref="BUYBACK-"+Date.now().toString(36).toUpperCase();state.cashHistory.unshift({id:ref,date:now(),type:"DTX market repurchase",amount:net,units:amount,status:"completed"});
+    addTransaction("DTX reserve repurchase",money(net),units(amount)+" repurchased · fee "+money(fee),"demo");
+    render();toast("DTX repurchased against the sandbox reserve. No external payout occurred.");
   });
   function purchase(id){
     const p=products.find(function(x){return x.id===id;});if(!p)return;
@@ -160,5 +172,5 @@
     if(!window.confirm("Reset all local DataX demo activity and restore the original sample balances?"))return;
     state=initialState();render();toast("Demo data has been reset.");
   });
-  renderProducts();render();
+  renderProducts();render();updateRedeemPreview();
 })();
