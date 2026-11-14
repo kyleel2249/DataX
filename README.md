@@ -52,7 +52,7 @@ The SQL migration in `migrations/0001_initial.sql` is a starting schema, not a d
 ## Mobile installation and background metering
 
 - **PWA:** serve DataX over HTTPS and use the browser's Install app / Add to Home Screen action. The service worker caches the application shell for offline viewing. Account, transfer and settlement API calls still require a connection.
-- **Android app source:** the `android/` project wraps the same DataX interface in a native WebView. The GitHub Actions Android workflow builds a debug APK artifact.
+- **Android app source:** the `android/` project wraps the same DataX interface in a native WebView. The GitHub Actions Android workflow builds a debug APK artifact. After deployment, enter the HTTPS Pages URL in Account & Transfers → Account server connection so the bundled Android app can reach the server API.
 - **Android background meter:** the user starts a persistent foreground service from the Bandwidth screen. It samples aggregate device receive/transmit byte counters once per minute and keeps a visible notification with a stop action. No packet payloads are read. Counters remain local to the device.
 - **Metering boundary:** aggregate device traffic can include unrelated applications and is not evidence that the user shared or delivered eligible bandwidth. It must not earn DTX until a network gateway/operator validates a contribution, its source and its revenue.
 - **iOS:** users can install the PWA to the Home Screen and use its offline shell. iOS does not provide a general-purpose continuous device-wide background traffic meter to ordinary PWAs or apps.
