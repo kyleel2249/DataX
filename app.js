@@ -273,6 +273,8 @@
       const snapshot=JSON.parse(bridge.getMeteringSnapshot());
       stateLabel.textContent=snapshot.running?"RUNNING IN BACKGROUND":"PAUSED";
       stateLabel.classList.toggle("meter-running",!!snapshot.running);
+      document.getElementById("startMeterButton").disabled=!!snapshot.running;
+      document.getElementById("stopMeterButton").disabled=!snapshot.running;
       document.getElementById("meterRx").textContent=bytesLabel(snapshot.rxBytes);
       document.getElementById("meterTx").textContent=bytesLabel(snapshot.txBytes);
       document.getElementById("meterLastSample").textContent=snapshot.lastSampleAt?new Date(snapshot.lastSampleAt).toLocaleTimeString():"Waiting for first sample";
