@@ -47,3 +47,18 @@ No build step or API key is required for this static prototype.
 - Blockchain: only finalized, eligible reward issuance and transfers; never raw traffic records or personal data.
 
 The SQL migration in `migrations/0001_initial.sql` is a starting schema, not a deployed database. Do not issue redeemable tokens from unverified traffic, unfunded reward estimates or reserves that have not been independently confirmed. Do not describe simulated reserve entries or local wallet credits as cash deposits or paid withdrawals.
+
+
+## Mobile installation and background metering
+
+- **PWA:** serve DataX over HTTPS and use the browser's Install app / Add to Home Screen action. The service worker caches the application shell for offline viewing. Account, transfer and settlement API calls still require a connection.
+- **Android app source:** the `android/` project wraps the same DataX interface in a native WebView. The GitHub Actions Android workflow builds a debug APK artifact.
+- **Android background meter:** the user starts a persistent foreground service from the Bandwidth screen. It samples aggregate device receive/transmit byte counters once per minute and keeps a visible notification with a stop action. No packet payloads are read. Counters remain local to the device.
+- **Metering boundary:** aggregate device traffic can include unrelated applications and is not evidence that the user shared or delivered eligible bandwidth. It must not earn DTX until a network gateway/operator validates a contribution, its source and its revenue.
+- **iOS:** users can install the PWA to the Home Screen and use its offline shell. iOS does not provide a general-purpose continuous device-wide background traffic meter to ordinary PWAs or apps.
+
+## Server-backed accounts and wallet APIs
+
+The Pages Functions under `functions/api/` provide account registration, sign-in, sign-out, current account details, DTX transfers and reserve-gated redemption requests. Passwords are PBKDF2-hashed; session tokens are stored as hashes and issued in Secure, HttpOnly, SameSite cookies. DTX transfers use integer token atoms and unique idempotency references.
+
+Before account APIs can run, create a Cloudflare D1 database, bind it as `DATA_DB`, and apply migrations in order: `0001_initial.sql`, `0002_dtx_money_and_redemption.sql`, then `0003_accounts_wallets_and_transfers.sql`. Cash redemption remains disabled in the database until reserve and payout operations are authorised and configured. The redemption endpoint can record a request only when the terms flag and verified reserve permit it; it does not itself send Mobile Money or bank funds.
