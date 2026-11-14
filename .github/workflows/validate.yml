@@ -16,11 +16,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check application JavaScript syntax
-        run: node --check app.js
+      - name: Run application and monetary-model checks
+        run: npm run check
       - name: Check required static assets
         run: |
           test -s index.html
           test -s styles.css
           test -s app.js
           test -s migrations/0001_initial.sql
+          test -s migrations/0002_dtx_money_and_redemption.sql
+          test -s tests/monetary-model.test.js
