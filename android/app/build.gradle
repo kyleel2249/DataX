@@ -1,0 +1,32 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+}
+
+android {
+    namespace "com.datax.app"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.datax.app"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "0.2.0"
+    }
+}
+
+dependencies {
+    implementation "androidx.webkit:webkit:1.12.1"
+    implementation "androidx.core:core-ktx:1.15.0"
+}
+
+def webRoot = rootProject.projectDir.parentFile
+tasks.register("syncWebAssets", Sync) {
+    from(webRoot) {
+        include "index.html", "styles.css", "app.js", "manifest.webmanifest", "service-worker.js", "offline.html"
+        include "assets/**"
+    }
+    into layout.projectDirectory.dir("src/main/assets/public")
+}
+tasks.named("preBuild").configure { dependsOn("syncWebAssets") }
