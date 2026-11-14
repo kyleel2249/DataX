@@ -1,11 +1,9 @@
 name = "datax"
 compatibility_date = "2026-11-14"
-pages_build_output_dir = "."
+pages_build_output_dir = "./dist"
 
-# Static Cloudflare Pages prototype.
-# Before enabling production APIs, configure D1, Queues, Durable Objects,
-# secrets and environment-specific bindings in Cloudflare.
-# D1 binding (create the database first, then replace the placeholder ID):
+# Cloudflare Pages Functions are discovered from ./functions at repository root.
+# Create the D1 database first, then replace the placeholder ID below and uncomment.
 # [[d1_databases]]
 # binding = "DATA_DB"
 # database_name = "datax-db"
