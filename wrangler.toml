@@ -3,7 +3,7 @@ compatibility_date = "2026-11-14"
 pages_build_output_dir = "./dist"
 
 # Cloudflare Pages Functions are discovered from ./functions at repository root.
-# Create the D1 database first, then replace the placeholder ID below and uncomment.
+# D1 database binding supplied for the DataX production project.
 [[d1_databases]]
 binding = "DATA_DB"
 database_name = "datax-db"
