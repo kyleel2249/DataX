@@ -180,8 +180,9 @@
   });
   renderProducts();render();updateRedeemPreview();
 
+  const getApiBaseUrl=function(){if(window.DataXNative&&window.DataXNative.getApiBaseUrl)return String(window.DataXNative.getApiBaseUrl()||"").replace(/\/$/,"");return String(localStorage.getItem("datax-api-base-url")||"").replace(/\/$/,"");};
   const apiRequest = async function(path, options) {
-    const response = await fetch(path, Object.assign({credentials:"same-origin",headers:{"content-type":"application/json"}},options||{}));
+    const response = await fetch(getApiBaseUrl()+path, Object.assign({credentials:"include",headers:{"content-type":"application/json"}},options||{}));
     let data={}; try { data=await response.json(); } catch(e) {}
     if(!response.ok) throw new Error(data.error||("Request failed ("+response.status+")."));
     return data;
@@ -251,6 +252,16 @@
     accountProfile=null; accountData=null; renderAccount(); toast("You have signed out.");
   });
   document.getElementById("refreshAccountButton").addEventListener("click",loadAccount);
+  const apiBaseInput=document.getElementById("apiBaseUrlInput");
+  apiBaseInput.value=getApiBaseUrl();
+  document.getElementById("saveApiBaseUrl").addEventListener("click",function(){
+    const value=apiBaseInput.value.trim().replace(/\/$/,"");
+    if(value&&!/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(value)){toast("Enter a valid HTTPS Pages site address without a path.");return;}
+    if(window.DataXNative&&window.DataXNative.setApiBaseUrl){const result=window.DataXNative.setApiBaseUrl(value);if(result!=="saved"){toast("The Android app rejected this server address.");return;}}
+    else localStorage.setItem("datax-api-base-url",value);
+    toast(value?"Account server address saved.":"Using the current website address.");
+    if(document.getElementById("view-account").classList.contains("active"))loadAccount();
+  });
 
   const bytesLabel=function(bytes){return (Number(bytes||0)/(1024*1024)).toFixed(2)+" MB";};
   const refreshNativeMeter=function(){
