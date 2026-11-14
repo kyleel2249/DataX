@@ -25,10 +25,11 @@ jobs:
           test -s app.js
           test -s migrations/0001_initial.sql
           test -s migrations/0002_dtx_money_and_redemption.sql
-          test -s tests/monetary-model.test.js
+          test -s tests/monetary-model.test.cjs
           test -s manifest.webmanifest
           test -s service-worker.js
           test -s android/app/src/main/AndroidManifest.xml
           test -s functions/api/auth/register.js
           test -s functions/api/wallet/transfer.js
+          test -s functions/_middleware.js
           test -s migrations/0003_accounts_wallets_and_transfers.sql
