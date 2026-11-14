@@ -68,3 +68,10 @@ test("server account and transfer endpoints use hashed passwords and idempotent 
   assert.match(transfer, /idempotencyKey/);
   assert.match(transfer, /balance_atoms>=\?/);
 });
+
+test("native API cross-origin access is restricted to the bundled Android origin", () => {
+  const middleware = fs.readFileSync("functions/_middleware.js", "utf8");
+  assert.match(middleware, /https:\/\/appassets\.androidplatform\.net/);
+  assert.match(middleware, /Access-Control-Allow-Credentials/);
+  assert.match(middleware, /Cross-origin request blocked/);
+});
