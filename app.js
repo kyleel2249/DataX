@@ -102,10 +102,11 @@
   const showView = function (name) {
     document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("active",v.id==="view-"+name);});
     document.querySelectorAll(".nav-item[data-view]").forEach(function(b){b.classList.toggle("active",b.dataset.view===name);});
-    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",account:"Account & transfers",cash:"Cash & reserves",activity:"Activity",settings:"Settings"};
+    const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",account:"Account & transfers",cash:"Cash & reserves",activity:"Activity",settings:"Settings",admin:"Review console"};
     document.getElementById("pageCrumb").textContent=labels[name]||"Overview";
     document.getElementById("sidebar").classList.remove("open");
     if(name==="account") loadAccount();
+    if(name==="admin" && window.DataXAdmin) window.DataXAdmin.load();
     window.scrollTo({top:0,behavior:"smooth"});
   };
   const openModal = function () {const m=document.getElementById("contributionModal");m.classList.add("open");m.setAttribute("aria-hidden","false");};
@@ -205,10 +206,12 @@
     try {
       const data=await apiRequest("/api/auth/me",{method:"GET",headers:{}});
       accountProfile=data.user; accountData=data; status.textContent="Connected · Cloudflare D1 wallet";
+      window.dispatchEvent(new CustomEvent("datax:account", {detail:data}));
       renderAccount();
       if(window.DataXBandwidth) await window.DataXBandwidth.load();
     } catch(error) {
       accountProfile=null; accountData=null; renderAccount();
+      window.dispatchEvent(new CustomEvent("datax:account", {detail:null}));
       status.textContent=error.message.indexOf("not configured")>=0||error.message.indexOf("database")>=0
         ?"Account API is ready in the codebase, but the Cloudflare D1 binding and migrations have not been configured."
         :error.message==="Sign in to continue."||error.message.indexOf("session has expired")>=0
