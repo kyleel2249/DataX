@@ -10,12 +10,11 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONObject
 
-class MainActivity : ComponentActivity() {
+class MainActivity : android.app.Activity() {
     private lateinit var webView: WebView
     private lateinit var assetLoader: WebViewAssetLoader
 
