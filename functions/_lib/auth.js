@@ -50,7 +50,7 @@ export async function createSession(db, userId) {
   const token = base64url(tokenBytes);
   const tokenHash = await sha256(token);
   const id = crypto.randomUUID();
-  const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString().slice(0, 19).replace("T", " ");
   await db.prepare("INSERT INTO auth_sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
     .bind(id, userId, tokenHash, expiresAt).run();
   return token;
