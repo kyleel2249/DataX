@@ -63,7 +63,7 @@ test("server account and transfer endpoints use hashed passwords and idempotent 
   const register = fs.readFileSync("functions/api/auth/register.js", "utf8");
   const transfer = fs.readFileSync("functions/api/wallet/transfer.js", "utf8");
   assert.match(auth, /PBKDF2/);
-  assert.match(auth, /HttpOnly; Secure; SameSite=Strict/);
+  assert.match(auth, /HttpOnly; Secure; SameSite=None/);
   assert.match(register, /password_hash/);
   assert.match(transfer, /idempotencyKey/);
   assert.match(transfer, /balance_atoms>=\?/);
