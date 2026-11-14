@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="icon" href="./assets/datax-icon.svg" type="image/svg+xml">
 </head>
 <body>
   <div class="app-shell">
@@ -25,6 +29,7 @@
         <button class="nav-item" data-view="token"><span class="nav-icon">◇</span> Token studio</button>
         <button class="nav-item" data-view="market"><span class="nav-icon">▦</span> Marketplace</button>
         <button class="nav-item" data-view="wallet"><span class="nav-icon">▣</span> Wallet</button>
+        <button class="nav-item" data-view="account"><span class="nav-icon">◎</span> Account & transfers</button>
         <button class="nav-item" data-view="cash"><span class="nav-icon">₵</span> Cash & reserves</button>
         <button class="nav-item" data-view="activity"><span class="nav-icon">↗</span> Activity</button>
       </nav>
@@ -47,7 +52,7 @@
       <header class="topbar">
         <button class="mobile-menu" id="menuToggle" aria-label="Toggle navigation">☰</button>
         <div class="breadcrumb">Workspace <span>/</span> <strong id="pageCrumb">Overview</strong></div>
-        <div class="top-actions"><span class="environment-pill"><i></i> Sandbox</span><button class="icon-button" id="helpButton" aria-label="About DataX">?</button></div>
+        <div class="top-actions"><button class="install-button" id="installAppButton" type="button">＋ Install app</button><span class="environment-pill"><i></i> Sandbox</span><button class="icon-button" id="helpButton" aria-label="About DataX">?</button></div>
       </header>
 
       <div class="demo-banner"><span class="banner-icon">ⓘ</span><span><strong>Prototype environment</strong> — displayed balances and simulated contributions are illustrative local data, not cash, live bandwidth measurements or redeemable tokens.</span><button id="bannerDismiss" aria-label="Dismiss notice">×</button></div>
@@ -85,7 +90,8 @@
 
       <section class="view" id="view-bandwidth">
         <div class="page-heading"><div><div class="eyebrow">ASSET MANAGEMENT</div><h1>Bandwidth <em>ledger.</em></h1><p>A transparent record of eligible traffic delivered and connectivity entitlements.</p></div><div class="heading-actions"><button class="secondary-button" id="exportCsv">↓ Export CSV</button><button class="primary-button" data-action="simulate">＋ Add demo event</button></div></div>
-        <div class="notice-card"><strong>What is recorded?</strong><p>DataX stores measured traffic events and entitlement evidence, not reusable internet data. This demo ledger is simulated and is not connected to a device, router or telecom operator.</p></div>
+        <div class="notice-card"><strong>What is recorded?</strong><p>DataX stores measured traffic events and entitlement evidence, not reusable internet data. The sample ledger is simulated. The Android background meter records aggregate device traffic only; those totals are not yet verified or reward-eligible.</p></div>
+        <article class="panel background-meter-panel"><div class="panel-heading"><div><div class="eyebrow">DEVICE TELEMETRY</div><h2>Background bandwidth meter</h2><p>Keep a visible Android service running while DataX is minimised.</p></div><span class="meter-state" id="meterState">NOT CONNECTED</span></div><div class="meter-explainer">The Android app samples aggregate device receive and transmit byte counters every minute. It does not inspect traffic contents or identify which app used the data. Metered totals stay on this device and do not earn DTX.</div><div class="meter-stats"><div><span>Received</span><strong id="meterRx">0 MB</strong></div><div><span>Transmitted</span><strong id="meterTx">0 MB</strong></div><div><span>Last sample</span><strong id="meterLastSample">Not started</strong></div></div><div class="meter-actions"><button class="primary-button" id="startMeterButton" type="button">Start background meter</button><button class="secondary-button" id="stopMeterButton" type="button" disabled>Pause meter</button></div><p class="fine-print" id="meterPlatformNote">Install the DataX Android app to run this meter in the background. On iPhone, DataX can be installed as a home-screen app, but iOS does not permit continuous device-wide background metering.</p></article>
         <div class="metric-grid compact"><article class="metric-card"><div class="metric-label">Total recorded</div><div class="metric-value" id="ledgerTotal">24.80 <small>GB</small></div></article><article class="metric-card"><div class="metric-label">Eligible events</div><div class="metric-value" id="ledgerEvents">8</div></article><article class="metric-card"><div class="metric-label">Awaiting review</div><div class="metric-value" id="ledgerPending">0</div></article></div>
         <article class="panel table-panel"><div class="panel-heading"><div><h2>All asset events</h2><p>Each event has a unique reference and verification state.</p></div><select class="filter-select" id="eventFilter"><option value="all">All events</option><option value="verified">Verified</option><option value="pending">Pending</option></select></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>DATE</th><th>SOURCE</th><th>TYPE</th><th>VOLUME</th><th>VALUE</th><th>STATUS</th></tr></thead><tbody id="ledgerEventsBody"></tbody></table></div></article>
       </section>
@@ -118,6 +124,25 @@
       </section>
 
 
+
+      <section class="view" id="view-account">
+        <div class="page-heading"><div><div class="eyebrow">IDENTITY · D1 WALLET · TRANSFERS</div><h1>Your DataX <em>account.</em></h1><p>Create an account, hold DTX and send tokens to other DataX members.</p></div></div>
+        <div class="notice-card"><strong>Server-backed accounts</strong><p>Account data is stored in Cloudflare D1 when the database binding and migrations are configured. Local demo balances are separate and cannot be transferred into a real account.</p></div>
+        <div id="accountApiStatus" class="account-api-status">Checking account service…</div>
+        <div class="auth-grid" id="accountSignedOut">
+          <form class="panel auth-panel" id="loginForm"><div class="panel-heading"><div><h2>Sign in</h2><p>Access your DataX wallet.</p></div></div><label for="loginEmail">Email address</label><input id="loginEmail" type="email" autocomplete="email" required><label for="loginPassword">Password</label><input id="loginPassword" type="password" autocomplete="current-password" required><button class="primary-button full-button" type="submit">Sign in securely</button></form>
+          <form class="panel auth-panel" id="registerForm"><div class="panel-heading"><div><h2>Create account</h2><p>Start with a personal DTX wallet.</p></div></div><label for="registerName">Full name</label><input id="registerName" type="text" autocomplete="name" minlength="2" maxlength="80" required><label for="registerEmail">Email address</label><input id="registerEmail" type="email" autocomplete="email" required><label for="registerPassword">Password</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="12" required><small>Use at least 12 characters. Your password is hashed before storage.</small><button class="primary-button full-button" type="submit">Create DataX account</button></form>
+        </div>
+        <div id="accountSignedIn" hidden>
+          <div class="wallet-cards"><article class="wallet-balance-card token"><span>SERVER DTX BALANCE</span><strong id="serverDtxBalance">0.000000 DTX</strong><small id="serverAccountEmail">Account</small></article><article class="wallet-balance-card cash"><span>ACCOUNT STATUS</span><strong id="serverAccountStatus">Active</strong><small>Server-backed wallet · D1 ledger</small></article></div>
+          <div class="account-work-grid">
+            <form class="panel auth-panel" id="transferForm"><div class="panel-heading"><div><h2>Send DTX</h2><p>Transfer to another registered DataX email.</p></div></div><label for="transferRecipient">Recipient email</label><input id="transferRecipient" type="email" required><label for="transferAmount">Amount (DTX)</label><input id="transferAmount" type="number" min="0.000001" max="100000000" step="0.000001" required><button class="primary-button full-button" type="submit">Send DTX transfer</button><p class="fine-print">Transfers are recorded in the D1 ledger with a unique request reference. No network or blockchain fee is currently charged.</p></form>
+            <form class="panel auth-panel" id="redemptionRequestForm"><div class="panel-heading"><div><h2>Request cash redemption</h2><p>Submit a settlement request against verified reserve.</p></div></div><label for="redemptionAmount">Amount (DTX)</label><input id="redemptionAmount" type="number" min="0.000001" step="0.000001" required><label for="redemptionMethod">Payout method</label><select id="redemptionMethod"><option value="mobile_money">Mobile Money</option><option value="bank_transfer">Bank transfer</option></select><p class="fine-print">Requests remain disabled until the DTX reserve and payout programme are approved and activated. A request is not a completed payout.</p><button class="secondary-button full-button" type="submit">Request redemption</button></form>
+          </div>
+          <article class="panel table-panel"><div class="panel-heading"><div><h2>Recent DTX transfers</h2><p>Server-recorded wallet activity.</p></div><button class="secondary-button" id="refreshAccountButton" type="button">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>DATE</th><th>DIRECTION</th><th>COUNTERPARTY</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="serverTransfers"></tbody></table></div></article>
+          <button class="text-button signout-button" id="signOutButton" type="button">Sign out</button>
+        </div>
+      </section>
       <section class="view" id="view-cash">
         <div class="page-heading"><div><div class="eyebrow">MONETARY VALUE · REDEMPTION · RESERVE</div><h1>Cash & <em>reserves.</em></h1><p>DTX is designed as a money-like, redeemable token with a published GHS reference value.</p></div></div>
         <div class="notice-card cash-notice"><strong>Redemption model: 1 DTX = GH₵ 1.00</strong><p>That is the proposed reference rate, not a live exchange quote. A real cash redemption is payable only when cleared fiat reserves and an approved payout rail are connected. This browser prototype records simulated reserve movements only. Current reserve backing coverage: <strong id="reserveCoverage">0%</strong>.</p></div>
