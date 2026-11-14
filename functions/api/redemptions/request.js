@@ -31,9 +31,9 @@ export async function onRequestPost({ request, env }) {
   try {
     await env.DATA_DB.batch([
       env.DATA_DB.prepare("UPDATE wallet_accounts SET balance_atoms=balance_atoms-? WHERE id=? AND balance_atoms>=? AND EXISTS (SELECT 1 FROM fiat_reserve_accounts WHERE id=? AND verification_status='verified' AND available_minor>=?)").bind(amountAtoms,wallet.id,amountAtoms,reserve.id,netMinor),
-      env.DATA_DB.prepare("INSERT INTO dtx_redemption_requests (id,user_id,token_amount_atoms,gross_value_minor,fee_minor,net_payout_minor,payout_method,reserve_account_id,status,idempotency_key) SELECT ?,?,?,?,?,?,?,?,'reserved',? WHERE changes()=1").bind(requestId,auth.user.id,amountAtoms,grossMinor,feeMinor,netMinor,payoutMethod,reserve.id,idempotencyKey),
+      env.DATA_DB.prepare("INSERT INTO dtx_redemption_requests (id,user_id,token_amount_atoms,gross_value_minor,fee_minor,net_payout_minor,payout_method,reserve_account_id,status,idempotency_key) SELECT ?,?,?,?,?,?,?,?,'requested',? WHERE changes()=1").bind(requestId,auth.user.id,amountAtoms,grossMinor,feeMinor,netMinor,payoutMethod,reserve.id,idempotencyKey),
       env.DATA_DB.prepare("UPDATE fiat_reserve_accounts SET available_minor=available_minor-?,reserved_minor=reserved_minor+? WHERE id=? AND verification_status='verified' AND available_minor>=? AND EXISTS (SELECT 1 FROM dtx_redemption_requests WHERE id=? AND status='reserved')").bind(netMinor,netMinor,reserve.id,netMinor,requestId),
-      env.DATA_DB.prepare("UPDATE dtx_redemption_requests SET status='requested' WHERE id=? AND status='reserved' AND NOT EXISTS (SELECT 1 FROM fiat_reserve_accounts WHERE id=? AND reserved_minor>=?)").bind(requestId,reserve.id,netMinor)
+      env.DATA_DB.prepare("UPDATE dtx_redemption_requests SET status='reserved' WHERE id=? AND status='requested' AND changes()=1").bind(requestId)
     ]);
     const record = await env.DATA_DB.prepare("SELECT id,status,net_payout_minor FROM dtx_redemption_requests WHERE id=?").bind(requestId).first();
     if (!record) return json({error:"Redemption request could not be reserved. No request was accepted."},409);
