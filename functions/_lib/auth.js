@@ -68,7 +68,7 @@ export async function requireUser(request, env) {
   if (!token) return { error: json({ error: "Sign in to continue." }, 401) };
   const tokenHash = await sha256(token);
   const row = await env.DATA_DB.prepare(
-    "SELECT u.id,u.email,u.display_name,u.account_status,s.id AS session_id FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP AND u.account_status='active' LIMIT 1"
+    "SELECT u.id,u.email,u.display_name,u.account_status,u.role,s.id AS session_id FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.revoked_at IS NULL AND s.expires_at>CURRENT_TIMESTAMP AND u.account_status='active' LIMIT 1"
   ).bind(tokenHash).first();
   if (!row) return { error: json({ error: "Your session has expired. Sign in again." }, 401) };
   return { user: row, tokenHash };
