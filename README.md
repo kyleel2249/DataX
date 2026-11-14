@@ -59,6 +59,6 @@ The SQL migration in `migrations/0001_initial.sql` is a starting schema, not a d
 
 ## Server-backed accounts and wallet APIs
 
-The Pages Functions under `functions/api/` provide account registration, sign-in, sign-out, current account details, DTX transfers and reserve-gated redemption requests. Passwords are PBKDF2-hashed; session tokens are stored as hashes and issued in Secure, HttpOnly, SameSite cookies. DTX transfers use integer token atoms and unique idempotency references.
+The Pages Functions under `functions/api/` provide account registration, sign-in, sign-out, current account details, DTX transfers and reserve-gated redemption requests. Passwords are PBKDF2-hashed; session tokens are stored as hashes and issued in Secure, HttpOnly, SameSite cookies. Email verification, multi-factor authentication, identity checks and login rate limiting still need to be added before public financial use. DTX transfers use integer token atoms and unique idempotency references.
 
 Before account APIs can run, create a Cloudflare D1 database, bind it as `DATA_DB`, and apply migrations in order: `0001_initial.sql`, `0002_dtx_money_and_redemption.sql`, then `0003_accounts_wallets_and_transfers.sql`. Cash redemption remains disabled in the database until reserve and payout operations are authorised and configured. The redemption endpoint can record a request only when the terms flag and verified reserve permit it; it does not itself send Mobile Money or bank funds.
