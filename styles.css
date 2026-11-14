@@ -16,3 +16,14 @@
 
 .api-endpoint-panel{margin:14px 0}.api-endpoint-panel small{display:block;color:#8fa7bd;font-size:9px;line-height:1.6;margin-top:9px}.api-endpoint-row{display:flex;gap:9px}.api-endpoint-row input{flex:1;min-width:0;padding:11px;background:#081b2e;border:1px solid var(--line);border-radius:8px;color:#e7f1fb;font-size:10px}.api-endpoint-row button{white-space:nowrap}
 @media(max-width:560px){.api-endpoint-row{flex-direction:column}.api-endpoint-row button{width:100%}}
+
+
+/* Authenticated bandwidth submission workspace */
+.bandwidth-submit-panel{margin-bottom:16px}
+.bandwidth-submit-panel form{display:grid;grid-template-columns:1fr;gap:8px}
+.bandwidth-submit-panel .account-work-grid{margin:0;gap:12px}
+.bandwidth-submit-panel input,.bandwidth-submit-panel select{width:100%;min-width:0}
+.bandwidth-submit-panel .consent-line{display:flex;align-items:flex-start;gap:9px;line-height:1.5;color:#a9bfd2}
+.bandwidth-submit-panel .consent-line input{width:16px;min-width:16px;margin-top:2px;accent-color:var(--cyan)}
+.bandwidth-submit-panel .account-api-status{min-height:18px;margin:2px 0 0}
+@media(max-width:640px){.bandwidth-submit-panel .account-work-grid{grid-template-columns:1fr}.bandwidth-submit-panel .panel-heading{align-items:flex-start;gap:10px;flex-direction:column}}
