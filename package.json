@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "wrangler pages dev .",
     "deploy": "wrangler pages deploy .",
-    "check": "node --check app.js"
+    "check": "node --check app.js && node --test tests/*.test.js"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
