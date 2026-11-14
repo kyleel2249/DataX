@@ -1,0 +1,14 @@
+{
+  "name": "datax",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DataX bandwidth-to-value platform prototype",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy .",
+    "check": "node --check app.js"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
