@@ -21,7 +21,7 @@
       {id:"BAL-000102",date:new Date(base-86400000*5).toISOString(),source:"Partner data voucher",type:"Entitlement record",gb:1.5,gross:1.5,reward:1.05,status:"verified",demo:true},
       {id:"BAL-000101",date:new Date(base-86400000*6).toISOString(),source:"Enterprise network",type:"Shared bandwidth",gb:2.0,gross:2.0,reward:1.4,status:"verified",demo:true}
     ];
-    return {events:events,tokens:12,cash:42.5,rewardCapacity:100,tokenLog:[],transactions:[],sequence:109};
+    return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,tokenLog:[],transactions:[],sequence:109};
   };
   let state;
   try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState(); } catch (e) { state = initialState(); }
