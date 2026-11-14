@@ -19,6 +19,32 @@ export function clearCookieHeader() {
   return cookieHeader("", 0);
 }
 
+// Structured, secret-free error logging. Output appears in Cloudflare Pages
+// Functions logs. Never pass passwords, tokens or hashes in `context`.
+export function logError(scope, error, context = {}) {
+  try {
+    console.error(JSON.stringify({
+      level: "error",
+      scope,
+      name: error && error.name ? String(error.name) : "Error",
+      message: String(error && error.message ? error.message : error).slice(0, 500),
+      ...context
+    }));
+  } catch {
+    console.error(`[${scope}] unloggable error`);
+  }
+}
+
+// True when a D1 error means the deployed schema is behind the code
+// (a migration has not been applied to this database).
+export function isSchemaError(error) {
+  return /no such (table|column)|has no column named/i.test(String(error && error.message));
+}
+
+export function isUniqueViolation(error) {
+  return /UNIQUE constraint/i.test(String(error && error.message));
+}
+
 function base64url(bytes) {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
@@ -95,14 +121,22 @@ export async function rateLimit(db, key, limit, windowSeconds) {
   }
 }
 
-export async function createSession(db, userId) {
+// Builds the session INSERT without running it, so callers can include it in
+// the same atomic db.batch() as other writes (for example account creation).
+export async function prepareSession(db, userId) {
   const tokenBytes = crypto.getRandomValues(new Uint8Array(32));
   const token = base64url(tokenBytes);
   const tokenHash = await sha256(token);
   const id = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_TTL_SECONDS * 1000).toISOString().slice(0, 19).replace("T", " ");
-  await db.prepare("INSERT INTO auth_sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
-    .bind(id, userId, tokenHash, expiresAt).run();
+  const statement = db.prepare("INSERT INTO auth_sessions (id,user_id,token_hash,expires_at) VALUES (?,?,?,?)")
+    .bind(id, userId, tokenHash, expiresAt);
+  return { token, statement };
+}
+
+export async function createSession(db, userId) {
+  const { token, statement } = await prepareSession(db, userId);
+  await statement.run();
   return token;
 }
 
