@@ -56,8 +56,18 @@ export async function onRequestPost({ request, env }) {
   const id = crypto.randomUUID();
   try {
     await env.DATA_DB.prepare(
-      "INSERT INTO bandwidth_events (id,user_id,source_type,source_reference,bytes_up,bytes_down,eligible_bytes,session_started_at,session_ended_at,verification_status,evidence_hash,idempotency_key) VALUES (?,?,?,?,?,?,0,?,?,'pending',NULL,?)"
-    ).bind(id, auth.user.id, sourceType, sourceReference, bytesUp, bytesDown, startedAt, endedAt, idempotencyKey).run();
+  "INSERT INTO bandwidth_events (id, user_id, source_type, source_reference, bytes_up, bytes_down, eligible_bytes, session_started_at, session_ended_at, verification_status, evidence_hash, idempotency_key) VALUES (?,?,?,?,?,?,0,?,?,'pending',NULL,?)"
+).bind(
+  id,
+  auth.user.id,
+  sourceType,
+  sourceReference,
+  bytesUp,
+  bytesDown,
+  startedAt,
+  endedAt,
+  idempotencyKey
+).run();
     return json({
       ok: true,
       event: {
