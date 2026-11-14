@@ -8,6 +8,7 @@
     <application
         android:allowBackup="false"
         android:label="DataX"
+        android:icon="@drawable/ic_datax"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
         <activity
