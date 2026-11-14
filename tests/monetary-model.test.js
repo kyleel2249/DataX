@@ -38,3 +38,33 @@ test("financial operations have idempotency keys and explicit settlement states"
   assert.match(migration, /'requested','reserved','approved','processing','paid','rejected','cancelled','failed'/);
   assert.match(migration, /'queued','submitted','confirmed','failed','reversed'/);
 });
+
+test("PWA install and offline shell are present", () => {
+  const manifest = fs.readFileSync("manifest.webmanifest", "utf8");
+  const worker = fs.readFileSync("service-worker.js", "utf8");
+  assert.match(html, /rel="manifest"/);
+  assert.match(html, /installAppButton/);
+  assert.match(manifest, /"display": "standalone"/);
+  assert.match(worker, /addEventListener\("fetch"/);
+});
+test("Android background meter is user-started and foreground-visible", () => {
+  const manifestXml = fs.readFileSync("android/app/src/main/AndroidManifest.xml", "utf8");
+  const service = fs.readFileSync("android/app/src/main/java/com/datax/app/DataXMeterService.kt", "utf8");
+  const activity = fs.readFileSync("android/app/src/main/java/com/datax/app/MainActivity.kt", "utf8");
+  assert.match(manifestXml, /FOREGROUND_SERVICE_SPECIAL_USE/);
+  assert.match(manifestXml, /foregroundServiceType="specialUse"/);
+  assert.match(service, /startForeground\(/);
+  assert.match(service, /TrafficStats\.getTotalRxBytes/);
+  assert.match(service, /onTaskRemoved/);
+  assert.match(activity, /addJavascriptInterface/);
+});
+test("server account and transfer endpoints use hashed passwords and idempotent records", () => {
+  const auth = fs.readFileSync("functions/_lib/auth.js", "utf8");
+  const register = fs.readFileSync("functions/api/auth/register.js", "utf8");
+  const transfer = fs.readFileSync("functions/api/wallet/transfer.js", "utf8");
+  assert.match(auth, /PBKDF2/);
+  assert.match(auth, /HttpOnly; Secure; SameSite=Strict/);
+  assert.match(register, /password_hash/);
+  assert.match(transfer, /idempotencyKey/);
+  assert.match(transfer, /balance_atoms>=\?/);
+});
