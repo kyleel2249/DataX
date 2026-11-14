@@ -72,6 +72,20 @@ class DataXNativeBridge(private val activity: MainActivity) {
     }
 
     @JavascriptInterface
+    fun getApiBaseUrl(): String = activity.getSharedPreferences("datax_native_settings", 0).getString("api_base_url", "") ?: ""
+
+    @JavascriptInterface
+    fun setApiBaseUrl(value: String): String {
+        val clean = value.trim().trimEnd('/')
+        if (clean.isNotEmpty()) {
+            val uri = Uri.parse(clean)
+            if (uri.scheme != "https" || uri.host.isNullOrBlank() || !uri.path.isNullOrEmpty()) return "invalid"
+        }
+        activity.getSharedPreferences("datax_native_settings", 0).edit().putString("api_base_url", clean).apply()
+        return "saved"
+    }
+
+    @JavascriptInterface
     fun getMeteringSnapshot(): String {
         val prefs = activity.getSharedPreferences(DataXMeterService.PREFS, 0)
         return JSONObject().apply {
