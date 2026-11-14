@@ -1,4 +1,5 @@
 const NATIVE_APP_ORIGIN = "https://appassets.androidplatform.net";
+const SAFE_METHODS = new Set(["GET", "HEAD"]);
 
 export async function onRequest({ request, next }) {
   const origin = request.headers.get("Origin");
@@ -19,6 +20,16 @@ export async function onRequest({ request, next }) {
 
   if (origin && !sameOrigin && !nativeOrigin && request.method !== "GET") {
     return new Response(JSON.stringify({ error: "Cross-origin request blocked." }), {
+      status: 403,
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+    });
+  }
+
+  // The session cookie is SameSite=None (needed by the Android WebView), so also refuse state-changing requests that the
+  // browser itself labels as coming from another site even when it sent no Origin header.
+  const fetchSite = request.headers.get("Sec-Fetch-Site");
+  if (!origin && !SAFE_METHODS.has(request.method) && fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") {
+    return new Response(JSON.stringify({ error: "Cross-site request blocked." }), {
       status: 403,
       headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
     });
