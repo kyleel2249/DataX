@@ -8,7 +8,7 @@ const client = fs.readFileSync("bandwidth-account.js", "utf8");
 
 test("authenticated bandwidth intake only creates pending, zero-eligible records", () => {
   assert.match(endpoint, /requireUser\(request, env\)/);
-  assert.match(endpoint, /verification_status\\s*,\\s*evidence_hash\\s*,\\s*idempotency_key/);
+  assert.match(endpoint, /verification_status\s*,\s*evidence_hash\s*,\s*idempotency_key/);
   assert.match(endpoint, /eligible_bytes,session_started_at,session_ended_at,verification_status/);
   assert.match(endpoint, /VALUES \(\?,\?,\?,\?,\?,\?,0,\?,\?,'pending',NULL,\?\)/);
   assert.match(endpoint, /No reward or DTX has been issued/);
