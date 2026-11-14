@@ -1,6 +1,5 @@
 const CACHE_NAME = "datax-shell-v1";
 const APP_SHELL = [
-  "./",
   "./index.html",
   "./styles.css",
   "./app.js",
@@ -17,7 +16,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("./api/")) return;
+  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
   if (request.mode === "navigate") {
     event.respondWith(fetch(request).then(response => {
       const copy = response.clone();
