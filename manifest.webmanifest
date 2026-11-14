@@ -1,0 +1,15 @@
+{
+  "id": "/",
+  "name": "DataX — Connectivity Exchange",
+  "short_name": "DataX",
+  "description": "Track connectivity usage, DTX balances and data marketplace activity.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#071629",
+  "theme_color": "#071629",
+  "icons": [
+    { "src": "/assets/datax-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
