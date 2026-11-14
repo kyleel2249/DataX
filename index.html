@@ -32,6 +32,7 @@
         <button class="nav-item" data-view="account"><span class="nav-icon">◎</span> Account & transfers</button>
         <button class="nav-item" data-view="cash"><span class="nav-icon">₵</span> Cash & reserves</button>
         <button class="nav-item" data-view="activity"><span class="nav-icon">↗</span> Activity</button>
+        <button class="nav-item" data-view="admin" id="adminNavItem" hidden><span class="nav-icon">✓</span> Review console</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="network-card">
@@ -187,6 +188,15 @@
         <div class="settings-grid"><article class="panel settings-panel"><h2>Environment</h2><p>DataX is running in local sandbox mode. Live provider credentials and blockchain signing are not configured.</p><div class="setting-row"><div><strong>Sandbox mode</strong><small>All transactions remain in this browser.</small></div><span class="toggle on">ON</span></div><div class="setting-row"><div><strong>Automatic token conversion</strong><small>Manual confirmation is required in this prototype.</small></div><span class="toggle">OFF</span></div></article><article class="panel settings-panel"><h2>Data management</h2><p>Resetting restores the original illustrative events, demo balances and transaction history.</p><button class="danger-button" id="resetButton">↺ Reset demo data</button></article><article class="panel settings-panel"><h2>Production readiness</h2><ul class="readiness-list"><li><span class="check pending">○</span> Telecom / ISP agreements</li><li><span class="check pending">○</span> Real traffic metering gateway</li><li><span class="check pending">○</span> Funded reward and reconciliation system</li><li><span class="check pending">○</span> Regulatory and payment approvals</li><li><span class="check pending">○</span> Audited smart contracts and custody</li></ul></article></div>
       </section>
 
+      <section class="view" id="view-admin">
+        <div class="page-heading"><div><div class="eyebrow">OPERATIONS · CONTROL ROOM</div><h1>Bandwidth <em>review console.</em></h1><p>Inspect member submissions, record evidence references and maintain an auditable review trail.</p></div><button class="secondary-button" id="refreshAdminQueue" type="button">↻ Refresh queue</button></div>
+        <div class="notice-card"><strong>Verification is a human review decision.</strong><p>Approval marks eligible bytes only after an administrator checks independent provider or gateway evidence. This console does not mint DTX, create cash claims or treat device-wide traffic totals as proof of shared bandwidth.</p></div>
+        <div class="metric-grid compact"><article class="metric-card"><div class="metric-label">Pending review</div><div class="metric-value" id="adminPendingCount">—</div></article><article class="metric-card"><div class="metric-label">Verified records</div><div class="metric-value" id="adminVerifiedCount">—</div></article><article class="metric-card"><div class="metric-label">Rejected records</div><div class="metric-value" id="adminRejectedCount">—</div></article></div>
+        <div id="adminQueueStatus" class="account-api-status" role="status" aria-live="polite">Administrator access is being checked…</div>
+        <div id="adminQueueList" class="admin-queue-list"><div class="panel empty-state">Loading review queue…</div></div>
+        <article class="panel table-panel admin-audit-panel"><div class="panel-heading"><div><h2>Review audit trail</h2><p>Recent decisions with reviewer, evidence reference and rationale.</p></div></div><div class="table-wrap"><table><thead><tr><th>EVENT</th><th>MEMBER</th><th>DECISION</th><th>ELIGIBLE BYTES</th><th>REVIEWER</th><th>EVIDENCE</th><th>REVIEWED</th></tr></thead><tbody id="adminAuditBody"><tr><td colspan="7" class="empty-state">No review decisions yet.</td></tr></tbody></table></div></article>
+      </section>
+
       <footer class="footer"><span>© 2026 DataX Technologies</span><span>Connectivity, accounted for. <i>·</i> Prototype v0.1.0</span></footer>
     </main>
   </div>
@@ -195,5 +205,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="./app.js"></script>
   <script src="./bandwidth-account.js"></script>
+  <script src="./admin-console.js"></script>
 </body>
 </html>

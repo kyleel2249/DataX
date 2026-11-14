@@ -141,3 +141,21 @@ Cash redemption remains disabled in the database until reserve and payout operat
 - Blockchain: only finalized, eligible reward issuance and transfers; never raw traffic records or personal data.
 
 Do not issue redeemable tokens from unverified traffic, unfunded reward estimates or reserves that have not been independently confirmed. Do not describe simulated reserve entries or local wallet credits as cash deposits or paid withdrawals.
+
+
+## Administrator bandwidth review console
+
+The review console is available only to accounts whose D1 `users.role` is set to `admin`. New registrations remain `member` by default. There is no public role-escalation endpoint.
+
+1. Apply migration `0004_bandwidth_review_roles.sql` to the production D1 database before deploying this version.
+2. Register the intended administrator account through the normal DataX sign-up flow.
+3. In the Cloudflare D1 console, assign the role to that exact registered email:
+
+   ```sql
+   UPDATE users SET role = 'admin' WHERE email = 'YOUR_REGISTERED_ADMIN_EMAIL';
+   SELECT email, role FROM users WHERE email = 'YOUR_REGISTERED_ADMIN_EMAIL';
+   ```
+
+4. Sign out and sign back in, then open **Review console**.
+
+Approval requires a provider/gateway evidence reference, a written rationale and an eligible-byte total no greater than the submitted bytes. Review decisions are written to `bandwidth_review_audit`. Review approval only changes verification status and eligible bytes; it does not issue DTX, create a reward allocation, or authorize a cash payout. Reward allocation and token issuance remain gated on independently confirmed funding and verified reserves.

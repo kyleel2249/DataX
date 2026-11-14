@@ -1,0 +1,12 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const endpoint = fs.readFileSync("functions/api/admin/bandwidth/review.js", "utf8");
+const auth = fs.readFileSync("functions/_lib/auth.js", "utf8");
+const migration = fs.readFileSync("migrations/0004_bandwidth_review_roles.sql", "utf8");
+const html = fs.readFileSync("index.html", "utf8");
+const client = fs.readFileSync("admin-console.js", "utf8");
+test("administrator review endpoints require the admin role", () => { assert.ok(endpoint.includes('auth.user.role === "admin"')); assert.ok(endpoint.includes("Administrator access is required")); assert.ok(auth.includes("u.role")); });
+test("approval requires evidence, a reason and bounded eligible bytes", () => { assert.ok(endpoint.includes("evidenceReference.length < 8")); assert.ok(endpoint.includes("reason.length < 10")); assert.ok(endpoint.includes("eligibleBytes > totalBytes")); assert.ok(endpoint.includes("verification_status='pending'")); assert.ok(endpoint.includes("cannot approve or reject their own submissions")); });
+test("review decisions are written to a dedicated audit table", () => { assert.ok(migration.includes("CREATE TABLE IF NOT EXISTS bandwidth_review_audit")); assert.ok(endpoint.includes("INSERT INTO bandwidth_review_audit")); assert.ok(endpoint.includes("reviewer_user_id")); });
+test("review console is wired into the existing application", () => { assert.ok(html.includes('id="adminNavItem"')); assert.ok(html.includes('id="view-admin"')); assert.ok(html.includes("admin-console.js")); assert.ok(client.includes("/api/admin/bandwidth/review")); assert.ok(client.includes("DTX")); });
