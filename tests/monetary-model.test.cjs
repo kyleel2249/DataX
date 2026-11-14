@@ -74,4 +74,5 @@ test("native API cross-origin access is restricted to the bundled Android origin
   assert.match(middleware, /https:\/\/appassets\.androidplatform\.net/);
   assert.match(middleware, /Access-Control-Allow-Credentials/);
   assert.match(middleware, /Cross-origin request blocked/);
+  assert.match(middleware, /Access-Control-Allow-Methods/);
 });
