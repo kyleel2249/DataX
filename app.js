@@ -23,13 +23,26 @@
     ];
     return {events:events,tokens:12,cash:42.5,rewardCapacity:100,convertedRewards:0,reserveCash:0,cashHistory:[],redemptions:[],tokenLog:[],transactions:[],sequence:109};
   };
+  // Repair any stored state with missing or malformed fields so a corrupted
+  // localStorage entry can never stop the interface from loading.
+  const sanitizeState = function (stored) {
+    const base = initialState();
+    if (!stored || typeof stored !== "object" || Array.isArray(stored)) return base;
+    ["events","cashHistory","redemptions","tokenLog","transactions"].forEach(function (key) {
+      if (!Array.isArray(stored[key])) stored[key] = base[key];
+    });
+    ["tokens","cash","rewardCapacity","convertedRewards","reserveCash","sequence"].forEach(function (key) {
+      const n = Number(stored[key]);
+      stored[key] = Number.isFinite(n) && n >= 0 ? n : base[key];
+    });
+    return stored;
+  };
   let state;
   let accountProfile = null;
   let accountData = null;
   let deferredInstallPrompt = null;
-  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialState(); } catch (e) { state = initialState(); }
-  state.reserveCash=Number(state.reserveCash)||0; state.cashHistory=Array.isArray(state.cashHistory)?state.cashHistory:[]; state.redemptions=Array.isArray(state.redemptions)?state.redemptions:[];
-  const save = function () { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); };
+  try { state = sanitizeState(JSON.parse(localStorage.getItem(STORAGE_KEY))); } catch (e) { state = initialState(); }
+  const save = function () { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* Storage can be unavailable (private mode or quota); the session continues in memory. */ } };
   const sum = function (key) { return state.events.reduce(function (a,e) { return a + Number(e[key] || 0); },0); };
   const toast = function (message) {
     const el = document.getElementById("toast");
@@ -101,7 +114,7 @@
   };
   const showView = function (name) {
     document.querySelectorAll(".view").forEach(function(v){v.classList.toggle("active",v.id==="view-"+name);});
-    document.querySelectorAll(".nav-item[data-view]").forEach(function(b){b.classList.toggle("active",b.dataset.view===name);});
+    document.querySelectorAll(".nav-item[data-view]").forEach(function(b){const active=b.dataset.view===name;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
     const labels={overview:"Overview",bandwidth:"Bandwidth assets",token:"Token studio",market:"Marketplace",wallet:"Wallet",account:"Account & transfers",cash:"Cash & reserves",activity:"Activity",settings:"Settings",admin:"Review console"};
     document.getElementById("pageCrumb").textContent=labels[name]||"Overview";
     document.getElementById("sidebar").classList.remove("open");
@@ -109,8 +122,10 @@
     if(name==="admin" && window.DataXAdmin) window.DataXAdmin.load();
     window.scrollTo({top:0,behavior:"smooth"});
   };
-  const openModal = function () {const m=document.getElementById("contributionModal");m.classList.add("open");m.setAttribute("aria-hidden","false");};
-  const closeModal = function () {const m=document.getElementById("contributionModal");m.classList.remove("open");m.setAttribute("aria-hidden","true");};
+  let modalReturnFocus = null;
+  const openModal = function () {const m=document.getElementById("contributionModal");modalReturnFocus=document.activeElement;m.classList.add("open");m.setAttribute("aria-hidden","false");const first=m.querySelector("select,input,button");if(first)first.focus();};
+  const closeModal = function () {const m=document.getElementById("contributionModal");m.classList.remove("open");m.setAttribute("aria-hidden","true");if(modalReturnFocus&&typeof modalReturnFocus.focus==="function")modalReturnFocus.focus();modalReturnFocus=null;};
+  document.addEventListener("keydown",function(e){if(e.key==="Escape"&&document.getElementById("contributionModal").classList.contains("open"))closeModal();});
   document.addEventListener("click",function(e){
     const nav=e.target.closest("[data-view]");if(nav){showView(nav.dataset.view);return;}
     const go=e.target.closest("[data-navigate]");if(go){showView(go.dataset.navigate);return;}
@@ -179,6 +194,9 @@
     if(!window.confirm("Reset all local DataX demo activity and restore the original sample balances?"))return;
     state=initialState();render();toast("Demo data has been reset.");
   });
+  // Keep the overview date current instead of a hard-coded publication date.
+  const overviewDate=document.querySelector("#view-overview .eyebrow");
+  if(overviewDate&&overviewDate.firstChild&&overviewDate.firstChild.nodeType===3){overviewDate.firstChild.textContent=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).toUpperCase()+" ";}
   renderProducts();render();updateRedeemPreview();
 
   const getApiBaseUrl=function(){if(window.DataXNative&&window.DataXNative.getApiBaseUrl)return String(window.DataXNative.getApiBaseUrl()||"").replace(/\/$/,"");return String(localStorage.getItem("datax-api-base-url")||"").replace(/\/$/,"");};
@@ -254,7 +272,10 @@
   });
   document.getElementById("signOutButton").addEventListener("click",async function(){
     try { await apiRequest("/api/auth/logout",{method:"POST",body:"{}"}); } catch(e) {}
-    accountProfile=null; accountData=null; renderAccount(); toast("You have signed out.");
+    accountProfile=null; accountData=null; renderAccount();
+    // Let dependent modules (review console, bandwidth records) drop signed-in state.
+    window.dispatchEvent(new CustomEvent("datax:account", {detail:null}));
+    toast("You have signed out.");
   });
   document.getElementById("refreshAccountButton").addEventListener("click",loadAccount);
   const apiBaseInput=document.getElementById("apiBaseUrlInput");

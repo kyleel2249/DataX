@@ -22,15 +22,23 @@
     const date = new Date(value);
     return Number.isFinite(date.getTime()) ? date.toLocaleString() : "—";
   }
+  // datetime-local values carry no zone; convert from the member's local time to UTC ISO so the
+  // server does not misread them as UTC.
+  function toIso(value) {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+  }
   function statusPill(value) {
-    const safe = escapeHtml(value || "pending");
-    return '<span class="status pending">' + safe.toUpperCase() + "</span>";
+    const raw = String(value || "pending").toLowerCase();
+    const css = raw === "verified" ? "verified" : raw === "rejected" ? "rejected" : "pending";
+    return '<span class="status ' + css + '">' + escapeHtml(raw).toUpperCase() + "</span>";
   }
   async function load() {
     try {
       const result = await request("/api/bandwidth/events", { method: "GET", headers: {} });
       const events = result.events || [];
-      body.innerHTML = events.map(event => '<tr><td class="ref">' + escapeHtml(event.id.slice(0, 8)) + '</td><td>' + dateLabel(event.created_at) + '</td><td>' + escapeHtml(event.source_type.replaceAll("_", " ")) + '</td><td>' + Number(event.bytes_up).toLocaleString() + ' B</td><td>' + Number(event.bytes_down).toLocaleString() + ' B</td><td>' + statusPill(event.verification_status) + '</td></tr>').join("") || '<tr><td colspan="6" class="empty-state">No submitted records yet.</td></tr>';
+      body.innerHTML = events.map(event => '<tr><td class="ref">' + escapeHtml(String(event.id).slice(0, 8)) + '</td><td>' + dateLabel(event.created_at) + '</td><td>' + escapeHtml(String(event.source_type).replaceAll("_", " ")) + '</td><td>' + Number(event.bytes_up).toLocaleString() + ' B</td><td>' + Number(event.bytes_down).toLocaleString() + ' B</td><td>' + statusPill(event.verification_status) + '</td></tr>').join("") || '<tr><td colspan="6" class="empty-state">No submitted records yet.</td></tr>';
       status.textContent = events.length + " server record(s) loaded. Pending records do not earn DTX.";
       return true;
     } catch (error) {
@@ -50,8 +58,8 @@
       sourceReference: document.getElementById("bandwidthSourceReference").value.trim(),
       bytesUp: document.getElementById("bandwidthBytesUp").value,
       bytesDown: document.getElementById("bandwidthBytesDown").value,
-      sessionStartedAt: document.getElementById("bandwidthStartedAt").value || null,
-      sessionEndedAt: document.getElementById("bandwidthEndedAt").value || null,
+      sessionStartedAt: toIso(document.getElementById("bandwidthStartedAt").value),
+      sessionEndedAt: toIso(document.getElementById("bandwidthEndedAt").value),
       idempotencyKey: "DXB-" + crypto.randomUUID()
     };
     const submit = form.querySelector('button[type="submit"]');
@@ -70,5 +78,11 @@
   });
   const refresh = document.getElementById("refreshBandwidthRecords");
   if (refresh) refresh.addEventListener("click", load);
+  window.addEventListener("datax:account", event => {
+    if (!event.detail) {
+      body.innerHTML = '<tr><td colspan="6" class="empty-state">Sign in to load your records.</td></tr>';
+      status.textContent = "";
+    }
+  });
   window.DataXBandwidth = { load };
 })();
