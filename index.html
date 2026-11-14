@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071629">
+  <meta name="description" content="DataX turns eligible connectivity contributions into verified digital value. Explore the bandwidth ledger, rewards and marketplace sandbox.">
+  <title>DataX — Connectivity, accounted for</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="DataX home">
+        <span class="brand-mark"><span></span><span></span><span></span></span>
+        <span>data<span class="brand-x">x</span><small>CONNECTIVITY EXCHANGE</small></span>
+      </a>
+      <div class="workspace-label">WORKSPACE</div>
+      <nav class="nav-list" aria-label="Main navigation">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">◫</span> Overview</button>
+        <button class="nav-item" data-view="bandwidth"><span class="nav-icon">⌁</span> Bandwidth assets</button>
+        <button class="nav-item" data-view="token"><span class="nav-icon">◇</span> Token studio</button>
+        <button class="nav-item" data-view="market"><span class="nav-icon">▦</span> Marketplace</button>
+        <button class="nav-item" data-view="wallet"><span class="nav-icon">▣</span> Wallet</button>
+        <button class="nav-item" data-view="activity"><span class="nav-icon">↗</span> Activity</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="network-card">
+          <div class="network-top"><span class="pulse-dot"></span> Sandbox network</div>
+          <p>Demo mode is active. No live carrier or blockchain connection.</p>
+          <span class="network-tag">LOCAL DEMO</span>
+        </div>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span> Settings</button>
+        <div class="profile">
+          <div class="avatar">DX</div>
+          <div><strong>Demo account</strong><small>Personal workspace</small></div>
+          <span class="profile-more">···</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu" id="menuToggle" aria-label="Toggle navigation">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="pageCrumb">Overview</strong></div>
+        <div class="top-actions"><span class="environment-pill"><i></i> Sandbox</span><button class="icon-button" id="helpButton" aria-label="About DataX">?</button></div>
+      </header>
+
+      <div class="demo-banner"><span class="banner-icon">ⓘ</span><span><strong>Prototype environment</strong> — displayed balances and simulated contributions are illustrative local data, not cash, live bandwidth measurements or redeemable tokens.</span><button id="bannerDismiss" aria-label="Dismiss notice">×</button></div>
+
+      <section class="view active" id="view-overview">
+        <div class="page-heading">
+          <div><div class="eyebrow">SATURDAY, 14 NOVEMBER 2026 <span class="live-dot"></span></div><h1>Your connectivity, <em>accounted for.</em></h1><p>Track eligible bandwidth contributions and see how verified value could move through DataX.</p></div>
+          <button class="primary-button" data-action="simulate"><span>＋</span> Simulate contribution</button>
+        </div>
+        <div class="metric-grid">
+          <article class="metric-card"><div class="metric-label">Verified bandwidth <span class="metric-symbol blue">⌁</span></div><div class="metric-value" id="metricBandwidth">24.80 <small>GB</small></div><div class="metric-foot"><span class="positive">↑ 8.4%</span> <span>vs. previous period</span></div></article>
+          <article class="metric-card"><div class="metric-label">Estimated rewards <span class="metric-symbol violet">◇</span></div><div class="metric-value" id="metricRewards">GH₵ 17.36</div><div class="metric-foot"><span class="muted">Demo estimate</span><span>· Not withdrawable</span></div></article>
+          <article class="metric-card"><div class="metric-label">Token balance <span class="metric-symbol cyan">◈</span></div><div class="metric-value" id="metricTokens">12.00 <small>DTX</small></div><div class="metric-foot"><span class="muted">Sandbox units</span><span>· No on-chain asset</span></div></article>
+          <article class="metric-card"><div class="metric-label">Spendable demo wallet <span class="metric-symbol gold">▣</span></div><div class="metric-value" id="metricWallet">GH₵ 42.50</div><div class="metric-foot"><span class="muted">Local test balance</span><span>· No cash value</span></div></article>
+        </div>
+        <div class="content-grid">
+          <article class="panel chart-panel">
+            <div class="panel-heading"><div><h2>Bandwidth activity</h2><p>Verified contribution volume · last 7 days</p></div><span class="select-chip">This week⌄</span></div>
+            <div class="chart-summary"><strong id="chartTotal">24.80 GB</strong><span>Recorded in sandbox ledger</span></div>
+            <div class="bar-chart" id="barChart" aria-label="Weekly bandwidth activity chart"></div>
+            <div class="chart-legend"><span><i></i> Eligible traffic delivered</span><span>Illustrative activity</span></div>
+          </article>
+          <article class="panel allocation-panel">
+            <div class="panel-heading"><div><h2>Value allocation</h2><p>Illustrative reward breakdown</p></div><span class="info-dot" title="Example allocation only">i</span></div>
+            <div class="donut-wrap"><div class="donut"><div><strong>100%</strong><small>Gross value</small></div></div></div>
+            <div class="allocation-rows"><div><i class="legend-dot contributor"></i><span>Contributor share</span><strong>70%</strong></div><div><i class="legend-dot platform"></i><span>Platform share</span><strong>30%</strong></div></div>
+            <div class="mini-note">Actual rewards require verified customer demand and received revenue or a funded partner pool.</div>
+          </article>
+        </div>
+        <article class="panel table-panel">
+          <div class="panel-heading"><div><h2>Recent bandwidth events</h2><p>Your latest recorded asset activity</p></div><button class="text-button" data-navigate="bandwidth">View ledger ↗</button></div>
+          <div class="table-wrap"><table><thead><tr><th>EVENT</th><th>SOURCE</th><th>VOLUME</th><th>EST. VALUE</th><th>STATUS</th></tr></thead><tbody id="recentEvents"></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-bandwidth">
+        <div class="page-heading"><div><div class="eyebrow">ASSET MANAGEMENT</div><h1>Bandwidth <em>ledger.</em></h1><p>A transparent record of eligible traffic delivered and connectivity entitlements.</p></div><div class="heading-actions"><button class="secondary-button" id="exportCsv">↓ Export CSV</button><button class="primary-button" data-action="simulate">＋ Add demo event</button></div></div>
+        <div class="notice-card"><strong>What is recorded?</strong><p>DataX stores measured traffic events and entitlement evidence, not reusable internet data. This demo ledger is simulated and is not connected to a device, router or telecom operator.</p></div>
+        <div class="metric-grid compact"><article class="metric-card"><div class="metric-label">Total recorded</div><div class="metric-value" id="ledgerTotal">24.80 <small>GB</small></div></article><article class="metric-card"><div class="metric-label">Eligible events</div><div class="metric-value" id="ledgerEvents">8</div></article><article class="metric-card"><div class="metric-label">Awaiting review</div><div class="metric-value" id="ledgerPending">0</div></article></div>
+        <article class="panel table-panel"><div class="panel-heading"><div><h2>All asset events</h2><p>Each event has a unique reference and verification state.</p></div><select class="filter-select" id="eventFilter"><option value="all">All events</option><option value="verified">Verified</option><option value="pending">Pending</option></select></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>DATE</th><th>SOURCE</th><th>TYPE</th><th>VOLUME</th><th>VALUE</th><th>STATUS</th></tr></thead><tbody id="ledgerEventsBody"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-token">
+        <div class="page-heading"><div><div class="eyebrow">DIGITAL ASSET ENGINE</div><h1>Token <em>studio.</em></h1><p>Review eligible rewards and test the token conversion workflow.</p></div></div>
+        <div class="notice-card"><strong>Sandbox token only.</strong><p>DTX shown here is an internal demonstration unit. No smart contract is deployed, no cryptocurrency is issued, and no exchange price is guaranteed.</p></div>
+        <div class="token-layout">
+          <article class="panel token-card"><div class="token-orb">D<span>TX</span></div><div class="eyebrow">DATA EXCHANGE · DEMO UNIT</div><h2>DTX Reward Unit</h2><p>Represents a simulated reward allocation from eligible bandwidth revenue. It is not a claim on a telecom bundle or a regulated financial product.</p><div class="token-balance"><span>Available demo units</span><strong id="tokenPageBalance">12.00 DTX</strong></div></article>
+          <article class="panel conversion-panel"><div class="panel-heading"><div><h2>Convert eligible rewards</h2><p>Move a demo reward allocation into sandbox DTX units.</p></div></div><div class="conversion-rate"><span>Illustrative conversion rate</span><strong>1 DTX = GH₵ 1.00</strong></div><label for="convertAmount">Reward amount (GH₵)</label><div class="input-with-prefix"><span>GH₵</span><input type="number" id="convertAmount" min="0.01" step="0.01" value="5.00"></div><div class="conversion-preview"><span>You receive</span><strong id="conversionPreview">5.00 DTX</strong></div><button class="primary-button full-button" id="convertButton">Convert demo rewards</button><p class="fine-print">Conversion uses demo reward capacity only. It does not create an on-chain token or cash-equivalent balance.</p></article>
+        </div>
+        <article class="panel table-panel"><div class="panel-heading"><div><h2>Token issuance log</h2><p>Sandbox conversion records.</p></div></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>DATE</th><th>REWARD VALUE</th><th>UNITS ISSUED</th><th>STATUS</th></tr></thead><tbody id="tokenLog"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-market">
+        <div class="page-heading"><div><div class="eyebrow">BUY · SELL · REDEEM</div><h1>DataX <em>marketplace.</em></h1><p>Test token sales and spend demo wallet funds on connectivity and digital products.</p></div></div>
+        <div class="notice-card"><strong>Demo marketplace.</strong><p>Orders update only this browser's local sandbox balances. There is no live liquidity, telecom fulfilment, merchant settlement or cash withdrawal.</p></div>
+        <div class="market-grid">
+          <article class="panel trade-panel"><div class="panel-heading"><div><h2>Sell DTX units</h2><p>Demo order book · indicative price</p></div><span class="market-status"><i></i> Sandbox pool</span></div><div class="price-block"><div><span>Indicative demo price</span><strong>GH₵ 1.00 <small>/ DTX</small></strong></div><div class="price-change">Fixed demo rate</div></div><label for="sellAmount">Units to sell</label><div class="input-with-prefix"><span>DTX</span><input type="number" id="sellAmount" min="0.01" step="0.01" value="5.00"></div><div class="trade-detail"><span>Gross proceeds</span><strong id="sellGross">GH₵ 5.00</strong></div><div class="trade-detail"><span>Demo marketplace fee (1%)</span><strong id="sellFee">− GH₵ 0.05</strong></div><div class="trade-detail total"><span>Net demo proceeds</span><strong id="sellNet">GH₵ 4.95</strong></div><button class="primary-button full-button" id="sellButton">Sell demo DTX</button><p class="fine-print">Order execution is simulated and limited by your displayed demo token balance.</p></article>
+          <article class="panel wallet-preview"><div class="panel-heading"><div><h2>Demo wallet</h2><p>Available sandbox balances</p></div><span class="wallet-icon">▣</span></div><div class="wallet-line"><span>Spendable balance</span><strong id="marketCash">GH₵ 42.50</strong></div><div class="wallet-line"><span>DTX units</span><strong id="marketTokens">12.00 DTX</strong></div><div class="wallet-line"><span>Pending settlements</span><strong>GH₵ 0.00</strong></div><button class="secondary-button full-button" data-navigate="wallet">Open wallet ↗</button></article>
+        </div>
+        <div class="section-heading"><div><h2>Spend your demo proceeds</h2><p>Example catalogue; purchases do not fulfil real products.</p></div></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <section class="view" id="view-wallet">
+        <div class="page-heading"><div><div class="eyebrow">ACCOUNT BALANCES</div><h1>Your <em>wallet.</em></h1><p>Keep demo rewards and spending balances separate.</p></div></div>
+        <div class="wallet-cards"><article class="wallet-balance-card cash"><span>SPENDABLE DEMO BALANCE</span><strong id="walletCashLarge">GH₵ 42.50</strong><small>Local sandbox currency · not withdrawable</small></article><article class="wallet-balance-card token"><span>DTX DEMO UNITS</span><strong id="walletTokensLarge">12.00 DTX</strong><small>Internal units · no blockchain value</small></article></div>
+        <article class="panel table-panel"><div class="panel-heading"><div><h2>Wallet transactions</h2><p>Token sales, conversions and demo purchases.</p></div></div><div class="table-wrap"><table><thead><tr><th>TRANSACTION</th><th>TYPE</th><th>DATE</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="walletTransactions"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-activity">
+        <div class="page-heading"><div><div class="eyebrow">AUDIT TRAIL</div><h1>Account <em>activity.</em></h1><p>A chronological view of changes made in this local prototype.</p></div></div>
+        <article class="panel table-panel"><div class="panel-heading"><div><h2>All transactions and events</h2><p>Local demo history.</p></div></div><div class="table-wrap"><table><thead><tr><th>REFERENCE</th><th>ACTIVITY</th><th>DATE</th><th>DETAIL</th><th>STATUS</th></tr></thead><tbody id="activityBody"></tbody></table></div></article>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="page-heading"><div><div class="eyebrow">PREFERENCES & CONTROLS</div><h1>DataX <em>settings.</em></h1><p>Manage your prototype preferences and local demonstration data.</p></div></div>
+        <div class="settings-grid"><article class="panel settings-panel"><h2>Environment</h2><p>DataX is running in local sandbox mode. Live provider credentials and blockchain signing are not configured.</p><div class="setting-row"><div><strong>Sandbox mode</strong><small>All transactions remain in this browser.</small></div><span class="toggle on">ON</span></div><div class="setting-row"><div><strong>Automatic token conversion</strong><small>Manual confirmation is required in this prototype.</small></div><span class="toggle">OFF</span></div></article><article class="panel settings-panel"><h2>Data management</h2><p>Resetting restores the original illustrative events, demo balances and transaction history.</p><button class="danger-button" id="resetButton">↺ Reset demo data</button></article><article class="panel settings-panel"><h2>Production readiness</h2><ul class="readiness-list"><li><span class="check pending">○</span> Telecom / ISP agreements</li><li><span class="check pending">○</span> Real traffic metering gateway</li><li><span class="check pending">○</span> Funded reward and reconciliation system</li><li><span class="check pending">○</span> Regulatory and payment approvals</li><li><span class="check pending">○</span> Audited smart contracts and custody</li></ul></article></div>
+      </section>
+
+      <footer class="footer"><span>© 2026 DataX Technologies</span><span>Connectivity, accounted for. <i>·</i> Prototype v0.1.0</span></footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="contributionModal" aria-hidden="true"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><button class="modal-close" data-close-modal aria-label="Close">×</button><div class="modal-icon">⌁</div><div class="eyebrow">SANDBOX EVENT GENERATOR</div><h2 id="modalTitle">Simulate a contribution</h2><p>This creates a clearly labelled demo record. It does not read your device traffic or send data over a network.</p><form id="contributionForm"><label for="contributionSource">Contribution source</label><select id="contributionSource"><option>Residential Wi-Fi gateway</option><option>Managed hotspot</option><option>Partner data voucher</option><option>Enterprise network</option></select><label for="contributionType">Event type</label><select id="contributionType"><option value="shared">Shared bandwidth delivered</option><option value="voucher">Partner entitlement record</option></select><label for="contributionGb">Volume (GB)</label><input id="contributionGb" type="number" min="0.01" max="500" step="0.01" value="2.5" required><div class="modal-estimate"><span>Illustrative gross value</span><strong id="contributionEstimate">GH₵ 2.50</strong></div><div class="modal-actions"><button type="button" class="secondary-button" data-close-modal>Cancel</button><button type="submit" class="primary-button">Add demo event</button></div></form></div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
