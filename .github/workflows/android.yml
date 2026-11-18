@@ -12,6 +12,17 @@ on:
       - "service-worker.js"
       - "assets/**"
       - ".github/workflows/android.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "index.html"
+      - "styles.css"
+      - "app.js"
+      - "manifest.webmanifest"
+      - "service-worker.js"
+      - "assets/**"
+      - ".github/workflows/android.yml"
   workflow_dispatch:
 
 jobs:
