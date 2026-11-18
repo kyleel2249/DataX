@@ -79,7 +79,7 @@ npx wrangler login
 npm run deploy
 ```
 
-The `deploy` script builds the site and runs `wrangler pages deploy dist --project-name datax --branch main`. The first CLI deployment can create the Pages project if it does not already exist. Do not run the CLI deployment until Wrangler is authenticated to the intended Cloudflare account.
+The `deploy` script builds the site and runs `wrangler --config wrangler.toml pages deploy dist --project-name datax --branch main`. The explicit `--config` prevents a local `wrangler.jsonc` from shadowing the repository configuration. The first CLI deployment can create the Pages project if it does not already exist. Do not run the CLI deployment until Wrangler is authenticated to the intended Cloudflare account.
 
 For Git-connected Pages projects, there is no separate dashboard "deploy command" field. A push to the configured production branch triggers the deployment. The CLI command above is for manual deployments.
 
@@ -87,9 +87,9 @@ For Git-connected Pages projects, there is no separate dashboard "deploy command
 
 The account and wallet API needs a D1 database bound with the exact variable name `DATA_DB`.
 
-1. In Cloudflare Dashboard, open **Workers & Pages → D1 SQL Database → Create database**.
-2. Name it `datax-db` and copy its database ID.
-3. Add the following binding to `wrangler.toml`, replacing the placeholder with the real database ID:
+1. In Cloudflare Dashboard, open **Workers & Pages → D1 SQL Database** and locate the existing production database `datax-db`. Do not create a second database when this one already exists.
+2. Keep its existing database ID `68383689-3265-4e14-8bbe-f418d5ca8fce` and binding name `DATA_DB` unchanged.
+3. Confirm the repository root `wrangler.toml` contains the binding:
 
 ```toml
 [[d1_databases]]
@@ -99,15 +99,18 @@ database_id = "PASTE_REAL_DATABASE_ID"
 migrations_dir = "migrations"
 ```
 
-4. Apply migrations from the repository root:
+4. From the repository root, inspect and apply migrations using the explicit repository config:
 
 ```bash
-npx wrangler d1 migrations apply datax-db --remote
+npm run db:migrations:list
+npm run db:migrations:apply
 ```
+
+Equivalent direct commands are `npx wrangler --config wrangler.toml d1 migrations list datax-db --remote` and `npx wrangler --config wrangler.toml d1 migrations apply datax-db --remote`. Always include `--config wrangler.toml` on this machine if a local `wrangler.jsonc` exists; Wrangler may otherwise select that file and fail to resolve `datax-db`.
 
 5. In the Pages project, open **Settings → Bindings → Add → D1 database**. Set Variable name to `DATA_DB`, select `datax-db`, save, and redeploy. If the Wrangler file is the configuration source of truth, keep its binding consistent with the dashboard.
 
-Apply the migrations in this order: `0001_initial.sql`, `0002_dtx_money_and_redemption.sql`, then `0003_accounts_wallets_and_transfers.sql`. Do not enable cash redemption merely because the database exists. Reserve custody, payout rails, reconciliation, identity checks and required legal approvals must be completed first.
+The migration directory contains `0001_initial.sql` through `0006_eti_integration_nonces.sql`; Wrangler applies only migrations absent from the remote migration history. Do not manually rerun historical SQL or insert migration-history rows unless the live schema has been inspected and reconciled first. Do not enable cash redemption merely because the database exists. Reserve custody, payout rails, reconciliation, identity checks and required legal approvals must be completed first.
 
 ## Authenticated bandwidth record intake
 
