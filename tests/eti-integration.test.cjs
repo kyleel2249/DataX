@@ -27,3 +27,12 @@ test("ETI integration does not create DTX-to-trading transfer or redemption path
   assert.doesNotMatch(route, /INSERT INTO wallet_accounts|UPDATE wallet_accounts|INSERT INTO dtx_redemption_requests/i);
   assert.match(route, /not proof of cash settlement or token backing/);
 });
+
+test("HMAC signer produces a stable SHA-256 signature for a canonical ETI request", async () => {
+  const { integrationCanonical, signIntegrationRequest } = await import("../functions/api/integrations/eti/summary.js");
+  const canonical = integrationCanonical("1795000000", "nonce123456789012", "GET", "/api/integrations/eti/summary");
+  const a = await signIntegrationRequest("x".repeat(48), canonical);
+  const b = await signIntegrationRequest("x".repeat(48), canonical);
+  assert.match(a, /^[a-f0-9]{64}$/);
+  assert.equal(a, b);
+});
