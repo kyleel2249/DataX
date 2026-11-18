@@ -8,7 +8,7 @@
     "build": "npm run check && node scripts/build.mjs",
     "test": "node --test tests/*.test.cjs",
     "deploy": "npm run build && wrangler pages deploy dist --project-name datax --branch main",
-    "check": "node --check app.js && node --check bandwidth-account.js && node --check admin-console.js && node --check service-worker.js && node --check scripts/build.mjs && node --check functions/_lib/auth.js && node --check functions/_middleware.js && node --check functions/api/auth/login.js && node --check functions/api/auth/logout.js && node --check functions/api/auth/me.js && node --check functions/api/auth/register.js && node --check functions/api/bandwidth/events.js && node --check functions/api/admin/bandwidth/review.js && node --check functions/api/wallet/transfer.js && node --check functions/api/redemptions/request.js && node --test tests/*.test.cjs"
+    "check": "node --check app.js && node --check bandwidth-account.js && node --check admin-console.js && node --check service-worker.js && node --check scripts/build.mjs && node --check functions/_lib/auth.js && node --check functions/_middleware.js && node --check functions/api/auth/login.js && node --check functions/api/auth/logout.js && node --check functions/api/auth/me.js && node --check functions/api/auth/register.js && node --check functions/api/bandwidth/events.js && node --check functions/api/admin/bandwidth/review.js && node --check functions/api/wallet/transfer.js && node --check functions/api/redemptions/request.js && node --check functions/api/integrations/eti/summary.js && node --test tests/*.test.cjs"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"
