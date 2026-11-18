@@ -106,3 +106,5 @@ export async function onRequestGet({ request, env }) {
     return json({ error: "integration_summary_unavailable" }, 503);
   }
 }
+
+// Production redeploy marker: activate the configured ETI_INTEGRATION_SECRET binding.
