@@ -13,7 +13,7 @@ The endpoint returns aggregate account, verified bandwidth, reward allocation, r
 ## Configure
 
 1. Apply all DataX D1 migrations to the production database, including migration 0006:
-   `npx wrangler pages d1 migrations apply datax-db --project-name datax --remote`
+   `npx wrangler d1 migrations apply datax-db --remote`
 2. Generate a random secret with at least 32 characters. Configure the same secret independently in both applications:
    - DataX Pages secret: `npx wrangler pages secret put ETI_INTEGRATION_SECRET --project-name datax`
    - ETI Worker secret: `npx wrangler secret put DATAX_INTEGRATION_SECRET`
