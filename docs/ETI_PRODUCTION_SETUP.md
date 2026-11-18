@@ -37,6 +37,8 @@ $secret | Set-Clipboard
 
 Paste the clipboard value directly into the two secret fields. Do not commit it, place it in a source file, or send it in chat. The value should be at least 32 characters; the command above generates 96 hexadecimal characters.
 
+A Pages secret change must be active in a fresh **production** Pages deployment before the Functions runtime can use it. If a signed ETI request still returns `invalid_integration_signature` after secret synchronization, trigger a new production deployment from the `main` branch, then rerun ETI deployment verification.
+
 ## Database migration state
 
 DataX production uses the existing D1 database `datax-db` (ID `68383689-3265-4e14-8bbe-f418d5ca8fce`) with binding `DATA_DB`. Do not create another database.
